@@ -1,0 +1,83 @@
+20260307:231928.783: INFO: Firebase Admin SDK initialized successfully.
+20260307:231929.168: INFO: Bot has been initialized.
+20260307:231929.168: INFO: Bot is now running.
+20260307:231929.165: INFO: Starting the Telegram bot...
+20260307:231929.168: INFO: Starting the Telegram Server...
+20260307:231929.172: INFO: Server is now running.
+20260307:231929.172: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260307:232033.507: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /listusers
+20260307:232035.475: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_start
+20260307:232037.110: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_list
+20260307:234601.334: INFO: Firebase Admin SDK initialized successfully.
+20260307:234601.729: INFO: Starting the Telegram bot...
+20260307:234601.733: INFO: Bot has been initialized.
+20260307:234601.734: INFO: Starting the Telegram Server...
+20260307:234601.734: INFO: Bot is now running.
+20260307:234601.739: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260307:234601.739: INFO: Server is now running.
+20260307:234611.774: INFO: Firebase Admin SDK initialized successfully.
+20260307:234612.150: INFO: Starting the Telegram bot...
+20260307:234612.153: INFO: Bot has been initialized.
+20260307:234612.153: INFO: Bot is now running.
+20260307:234612.153: INFO: Starting the Telegram Server...
+20260307:234612.157: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260307:234612.157: INFO: Server is now running.
+20260307:234615.648: INFO: Firebase Admin SDK initialized successfully.
+20260307:234616.0009: INFO: Starting the Telegram bot...
+20260307:234616.012: INFO: Bot has been initialized.
+20260307:234616.013: INFO: Bot is now running.
+20260307:234616.013: INFO: Starting the Telegram Server...
+20260307:234616.018: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260307:234616.018: INFO: Server is now running.
+20260307:234617.662: INFO: Firebase Admin SDK initialized successfully.
+20260307:234618.014: INFO: Starting the Telegram bot...
+20260307:234618.018: INFO: Bot has been initialized.
+20260307:234618.019: INFO: Bot is now running.
+20260307:234618.019: INFO: Starting the Telegram Server...
+20260307:234618.023: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260307:234618.023: INFO: Server is now running.
+20260307:234625.225: INFO: Firebase Admin SDK initialized successfully.
+20260307:234625.615: INFO: Bot has been initialized.
+20260307:234625.611: INFO: Starting the Telegram bot...
+20260307:234625.616: INFO: Bot is now running.
+20260307:234625.616: INFO: Starting the Telegram Server...
+20260307:234625.621: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260307:234625.621: INFO: Server is now running.
+20260307:234627.333: INFO: Firebase Admin SDK initialized successfully.
+20260307:234627.720: INFO: Starting the Telegram bot...
+20260307:234627.723: INFO: Bot has been initialized.
+20260307:234627.724: INFO: Starting the Telegram Server...
+20260307:234627.723: INFO: Bot is now running.
+20260307:234627.727: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260307:234627.728: INFO: Server is now running.
+20260307:234927.458: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260307:234933.267: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_delete
+20260307:234939.142: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_select_2ScedmF7OtSwodJDF0A6WiP52Ru2
+20260307:234941.372: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_confirm_yes
+20260307:234946.237: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_delete
+20260307:235129.023: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_select_H9WJTTasTaepzyhRrKRGFR9wAZs1
+20260307:235131.420: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_confirm_yes
+20260307:235142.447: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_select_xY6REcsJeWHohXen427W
+20260307:235149.822: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_cancel
+20260307:235208.295: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_delete
+20260307:235217.823: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_select_evb9MHklnxh3V7Miw2GP
+20260307:235220.211: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_confirm_yes
+20260307:235227.514: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_delete
+20260307:235241.019: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_select_NgrEUHKI7ZR4t6pE8MMJ
+20260307:235243.031: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_confirm_yes
+20260307:235447.633: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_list
+20260307:235448.0003: WARN: Permission check failed: User @shuaibabs not found in database.
+20260307:235500.261: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: fef
+20260307:235508.0009: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_start
+20260307:235508.391: WARN: Permission check failed: User @shuaibabs not found in database.
+20260307:235626.794: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_start
+20260307:235630.506: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_list
+20260307:235804.599: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_add
+20260307:235815.617: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: Rimsha
+20260307:235829.012: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: rimshakassar@gmail.com
+20260307:235833.056: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: create_user_role_admin
+20260307:235845.200: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: rimsha_001
+20260307:235859.738: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: Rimsha@1234
+20260307:235902.986: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: create_user_confirm_yes
+20260307:235907.168: INFO: Firebase Auth user created for rimshakassar@gmail.com with UID: bC9sdZukzKPhuSfznZAnnU2R7tO2
+20260307:235907.670: INFO: User Rimsha saved to Firestore.
