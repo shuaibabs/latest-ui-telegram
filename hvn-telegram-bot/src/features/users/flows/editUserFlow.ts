@@ -143,7 +143,9 @@ async function handleNameInput(bot: TelegramBot, message: TelegramBot.Message) {
             employeeName: session.displayName || 'Unknown',
             action: 'UPDATE_USER_NAME',
             description: `Updated name for user ${session.displayName} to ${newName}`,
-            createdBy: creator
+            createdBy: creator,
+            source: 'BOT',
+            groupName: 'USERS'
         }, true);
     } catch (error: any) {
         await bot.sendMessage(chatId, `❌ Error: ${error.message}`);
@@ -172,7 +174,9 @@ async function handleUsernameInput(bot: TelegramBot, message: TelegramBot.Messag
             employeeName: session.displayName || 'Unknown',
             action: 'UPDATE_USER_USERNAME',
             description: `Updated telegram username for user ${session.displayName} to @${newUsername}`,
-            createdBy: creator
+            createdBy: creator,
+            source: 'BOT',
+            groupName: 'USERS'
         }, true);
     } catch (error: any) {
         await bot.sendMessage(chatId, `❌ Error: ${error.message}`);

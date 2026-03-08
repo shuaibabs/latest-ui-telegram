@@ -22,7 +22,7 @@ export const useIdleTimeout = (timeout: number) => {
     const handleLogout = useCallback(async () => {
         if (!app || !user) return;
         const auth = getAuth(app);
-        
+
         await signOut(auth);
 
         localStorage.removeItem(LAST_ACTIVITY_KEY);
@@ -32,7 +32,7 @@ export const useIdleTimeout = (timeout: number) => {
             description: "You have been logged out due to inactivity.",
         });
 
-        navigate('/login', pathname, { replace: true });
+        navigate('/login', { replace: true });
 
     }, [app, user, navigate, pathname, toast]);
 
@@ -61,8 +61,8 @@ export const useIdleTimeout = (timeout: number) => {
                 resetTimer();
             }
         } else {
-             // When tab becomes hidden, clear the JS timer.
-             // The visibility change handler will take care of it when it becomes visible again.
+            // When tab becomes hidden, clear the JS timer.
+            // The visibility change handler will take care of it when it becomes visible again.
             if (timer.current) {
                 clearTimeout(timer.current);
             }
@@ -80,7 +80,7 @@ export const useIdleTimeout = (timeout: number) => {
 
         events.forEach(event => window.addEventListener(event, handleActivity));
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        
+
         resetTimer();
 
         return () => {

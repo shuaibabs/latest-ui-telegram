@@ -104,7 +104,9 @@ function handleConfirmation(bot, callbackQuery) {
                     employeeName: session.displayName || 'Unknown',
                     action: 'DELETE_USER',
                     description: `Deleted user ${session.displayName}`,
-                    createdBy: creator
+                    createdBy: creator,
+                    source: 'BOT',
+                    groupName: 'USERS'
                 }, true);
             }
             catch (error) {

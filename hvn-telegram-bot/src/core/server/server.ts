@@ -1,17 +1,26 @@
 import express, { Request, Response, NextFunction } from 'express';
+import admin from 'firebase-admin';
 import helmet from 'helmet';
+import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { env } from '../../config/env';
 import { broadcast } from '../../features/broadcast/broadcastService';
 import TelegramBot from 'node-telegram-bot-api';
 import { logger } from '../logger/logger';
+import { db, auth } from '../../config/firebase';
+import { deleteUser } from '../../features/users/userService';
 
 const NotifySchema = z.object({
     groupName: z.string().optional(),
-    groupId: z.string().optional(),
-    message: z.string().min(1, 'Message is required'),
+    action: z.string().min(1, 'Action is required'),
+    employeeName: z.string().min(1, 'Employee name is required'),
+    description: z.string().min(1, 'Description is required'),
     source: z.enum(['UI', 'BOT']).default('UI'),
+});
+
+const DeleteUserSchema = z.object({
+    userId: z.string().min(1, 'User ID is required'),
 });
 
 /**
@@ -42,6 +51,7 @@ export function startServer(bot: TelegramBot) {
 
     // Apply Security Middlewares
     app.use(helmet());
+    app.use(cors()); // Enable CORS for UI App access
     app.use(express.json({ limit: '10kb' })); // Limit body size to prevent memory-filling attacks
     app.use(limiter);
 
@@ -60,8 +70,16 @@ export function startServer(bot: TelegramBot) {
                 });
             }
 
-            const { groupName, groupId, message, source } = parseResult.data;
-            const result = await broadcast(groupName || groupId || '', message, source);
+            const { groupName, action, employeeName, description, source } = parseResult.data;
+
+            // Format message consistently
+            const message = `**Action:** ${action}\n**Performed By:** ${employeeName}\n**Details:** ${description}`;
+
+            // Route to correct group if not provided (though UI sends it)
+            const userActions = ['Updated User', 'Deleted User', 'Added User'];
+            const targetGroup = groupName || (userActions.includes(action) ? 'USERS' : 'ACTIVITY');
+
+            const result = await broadcast(targetGroup, message, source);
 
             if (result.success) {
                 return res.status(200).json({ success: true });
@@ -70,6 +88,57 @@ export function startServer(bot: TelegramBot) {
             }
         } catch (error) {
             next(error); // Forward to global error handler
+        }
+    });
+
+    // Secure Admin Delete User Endpoint
+    app.post('/api/admin/delete-user', apiKeyGuard, async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const parseResult = DeleteUserSchema.safeParse(req.body);
+
+            if (!parseResult.success) {
+                return res.status(400).json({
+                    error: 'Validation failed',
+                    details: parseResult.error.format()
+                });
+            }
+
+            const { userId } = parseResult.data;
+
+            try {
+                // Get user details before deletion for the notification message
+                const userSnapshot = await db.collection('users').doc(userId).get();
+                const userData = userSnapshot.data();
+                const userName = userData?.displayName || userData?.email || 'Unknown User';
+
+                await deleteUser(userId);
+
+                // Log Activity to Firestore with source: 'BOT'
+                const activityDescription = `Deleted the user account for ${userName} (${userData?.email || 'No email'}).`;
+                await db.collection('activities').add({
+                    employeeName: 'System (Bot)',
+                    action: 'Deleted User',
+                    description: activityDescription,
+                    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    createdBy: 'BOT_SERVER',
+                    source: 'BOT',
+                    groupName: 'USERS'
+                });
+
+                // Broadcast the deletion
+                await broadcast(
+                    'USERS',
+                    `🗑️ **User Account Deleted**\n\n**Action:** Deleted User\n**Performed By:** System (Bot)\n**Details:** ${activityDescription}`,
+                    'UI' // Pass UI to trigger broadcast (broadcast service usually filters by source)
+                );
+
+                return res.status(200).json({ success: true });
+            } catch (error: any) {
+                logger.error(`[ADMIN ERROR]: Failed to delete user ${userId}: ${error.message}`);
+                return res.status(500).json({ error: error.message });
+            }
+        } catch (error) {
+            next(error);
         }
     });
 

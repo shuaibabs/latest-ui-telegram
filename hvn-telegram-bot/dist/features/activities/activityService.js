@@ -24,7 +24,7 @@ const logActivity = (bot_1, data_1, ...args_1) => __awaiter(void 0, [bot_1, data
         const lastSrNo = lastActivity.empty ? 0 : lastActivity.docs[0].data().srNo;
         const nextSrNo = lastSrNo + 1;
         const newDocRef = activitiesRef.doc();
-        const newActivity = Object.assign(Object.assign({}, data), { id: newDocRef.id, srNo: nextSrNo, timestamp: firestore_1.Timestamp.now() });
+        const newActivity = Object.assign(Object.assign({}, data), { id: newDocRef.id, srNo: nextSrNo, timestamp: firestore_1.Timestamp.now(), source: data.source || 'BOT', groupName: data.groupName || 'ACTIVITY' });
         // Validate
         const validation = validation_1.activitySchema.safeParse(newActivity);
         if (!validation.success) {

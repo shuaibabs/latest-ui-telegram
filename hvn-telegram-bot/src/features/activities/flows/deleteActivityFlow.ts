@@ -101,7 +101,9 @@ async function handleConfirmation(bot: TelegramBot, callbackQuery: TelegramBot.C
             employeeName: 'System',
             action: 'DELETE_SINGLE_ACTIVITY',
             description: `Deleted activity log #${session.srNo}`,
-            createdBy: creator
+            createdBy: creator,
+            source: 'BOT',
+            groupName: 'ACTIVITY'
         }, true); // Broadcast to channel
 
     } catch (error: any) {

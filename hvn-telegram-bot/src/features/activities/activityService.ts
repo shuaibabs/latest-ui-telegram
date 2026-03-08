@@ -25,7 +25,9 @@ export const logActivity = async (
             ...data,
             id: newDocRef.id,
             srNo: nextSrNo,
-            timestamp: Timestamp.now()
+            timestamp: Timestamp.now(),
+            source: data.source || 'BOT',
+            groupName: data.groupName || 'ACTIVITY'
         };
 
         // Validate

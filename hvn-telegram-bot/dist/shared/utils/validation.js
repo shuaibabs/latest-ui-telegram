@@ -70,6 +70,8 @@ exports.activitySchema = zod_1.z.object({
     description: zod_1.z.string(),
     timestamp: timestampSchema,
     createdBy: zod_1.z.string(),
+    source: zod_1.z.enum(['UI', 'BOT']),
+    groupName: zod_1.z.string().optional(),
 });
 exports.reminderSchema = zod_1.z.object({
     id: zod_1.z.string(),

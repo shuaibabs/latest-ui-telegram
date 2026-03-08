@@ -106,7 +106,9 @@ async function handleConfirmation(bot: TelegramBot, callbackQuery: TelegramBot.C
                 employeeName: session.displayName || 'Unknown',
                 action: 'DELETE_USER',
                 description: `Deleted user ${session.displayName}`,
-                createdBy: creator
+                createdBy: creator,
+                source: 'BOT',
+                groupName: 'USERS'
             }, true);
         } catch (error: any) {
             await bot.sendMessage(chatId, `❌ Error: ${error.message}`);

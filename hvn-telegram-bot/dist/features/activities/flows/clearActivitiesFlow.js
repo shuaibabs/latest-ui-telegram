@@ -39,7 +39,9 @@ function handleClearActivities(bot, callbackQuery) {
                     employeeName: 'System',
                     action: 'CLEAR_LOGS',
                     description: 'All activity logs were cleared',
-                    createdBy: creator
+                    createdBy: creator,
+                    source: 'BOT',
+                    groupName: 'ACTIVITY'
                 }, true);
             }
             catch (error) {

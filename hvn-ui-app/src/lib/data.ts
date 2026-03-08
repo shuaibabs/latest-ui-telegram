@@ -71,15 +71,15 @@ export type SaleRecord = {
 };
 
 export type DeletedNumberRecord = {
-    id: string; // Firestore document ID in the deletedNumbers collection
-    originalId: string; // ID from the 'numbers' collection
-    originalSrNo: number;
-    mobile: string;
-    sum: number;
-    deletionReason: string;
-    deletedBy: string; // Name of user
-    deletedAt: Timestamp;
-    originalNumberData: Omit<NumberRecord, 'id'>;
+  id: string; // Firestore document ID in the deletedNumbers collection
+  originalId: string; // ID from the 'numbers' collection
+  originalSrNo: number;
+  mobile: string;
+  sum: number;
+  deletionReason: string;
+  deletedBy: string; // Name of user
+  deletedAt: Timestamp;
+  originalNumberData: Omit<NumberRecord, 'id'>;
 };
 
 export type PreBookingRecord = {
@@ -117,6 +117,8 @@ export type Activity = {
   description: string;
   timestamp: Timestamp;
   createdBy: string;
+  source: 'UI' | 'BOT';
+  groupName?: string;
 };
 
 export type DealerPurchaseRecord = {
@@ -129,16 +131,16 @@ export type DealerPurchaseRecord = {
   createdBy: string;
 };
 
-export type NewDealerPurchaseData = Omit<DealerPurchaseRecord, 'id' | 'srNo' | 'createdBy' | 'sum' >;
+export type NewDealerPurchaseData = Omit<DealerPurchaseRecord, 'id' | 'srNo' | 'createdBy' | 'sum'>;
 
 export type PaymentRecord = {
-    id: string;
-    srNo: number;
-    vendorName: string;
-    amount: number;
-    paymentDate: Timestamp;
-    notes?: string;
-    createdBy: string;
+  id: string;
+  srNo: number;
+  vendorName: string;
+  amount: number;
+  paymentDate: Timestamp;
+  notes?: string;
+  createdBy: string;
 };
 
 export type NewPaymentData = Omit<PaymentRecord, 'id' | 'srNo' | 'createdBy' | 'paymentDate'> & { paymentDate: Date };

@@ -234,7 +234,9 @@ function handleConfirmation(bot, callbackQuery) {
                     employeeName: session.newUser.displayName || 'Unknown',
                     action: 'CREATE_USER',
                     description: `Created new user ${session.newUser.displayName} with role ${session.newUser.role}`,
-                    createdBy: creator
+                    createdBy: creator,
+                    source: 'BOT',
+                    groupName: 'USERS'
                 }, true); // shouldBroadcast = true for successful completion
                 (0, sessionManager_1.clearSession)(chatId, 'createUser');
             }

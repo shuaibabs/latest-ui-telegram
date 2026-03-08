@@ -69,32 +69,32 @@ const mapSnapshotToData = <T extends { id: string }>(snapshot: QuerySnapshot<Doc
 
 // Helper function to convert undefined values to null in an object
 const sanitizeObjectForFirestore = (obj: any): any => {
-    if (obj === null || obj === undefined) {
-        return null;
-    }
-    if (typeof obj !== 'object' || obj instanceof Timestamp || obj instanceof Date) {
-        return obj;
-    }
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  if (typeof obj !== 'object' || obj instanceof Timestamp || obj instanceof Date) {
+    return obj;
+  }
 
-    if (Array.isArray(obj)) {
-        return obj.map(item => sanitizeObjectForFirestore(item));
-    }
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeObjectForFirestore(item));
+  }
 
-    const newObj: { [key: string]: any } = {};
-    for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            const value = obj[key];
-            newObj[key] = value === undefined ? null : sanitizeObjectForFirestore(value);
-        }
+  const newObj: { [key: string]: any } = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = obj[key];
+      newObj[key] = value === undefined ? null : sanitizeObjectForFirestore(value);
     }
-    return newObj;
+  }
+  return newObj;
 };
 
 const createDetailedDescription = (baseText: string, affectedNumbers: string[]) => {
-    if (affectedNumbers.length === 0) {
-        return `${baseText} 0 numbers.`;
-    }
-    return `${baseText} ${affectedNumbers.length} numbers: ${affectedNumbers.join(', ')}.`;
+  if (affectedNumbers.length === 0) {
+    return `${baseText} 0 numbers.`;
+  }
+  return `${baseText} ${affectedNumbers.length} numbers: ${affectedNumbers.join(', ')}.`;
 };
 
 
@@ -181,7 +181,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [employees, setEmployees] = useState<string[]>([]);
   const [vendors, setVendors] = useState<string[]>([]);
-  
+
   const [roleFilteredActivities, setRoleFilteredActivities] = useState<Activity[]>([]);
   const [seenActivitiesCount, setSeenActivitiesCount] = useState(0);
   const [recentlyAutoRtpIds, setRecentlyAutoRtpIds] = useState<string[]>([]);
@@ -199,9 +199,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [usersLoading, setUsersLoading] = useState(true);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
 
-    // Combined loading state: true if auth is loading OR if auth is done but any data is still loading.
+  // Combined loading state: true if auth is loading OR if auth is done but any data is still loading.
   const loading =
-    authLoading || 
+    authLoading ||
     (!!user && (
       numbersLoading ||
       salesLoading ||
@@ -221,19 +221,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     timestamp: Timestamp.now(),
     performedBy,
   }), []);
-    
+
   const getSeenCountKey = useCallback(() => {
     return user ? `seenActivitiesCount_${user.uid}` : null;
   }, [user?.uid]);
 
-  const addActivity = useCallback((activity: Omit<Activity, 'id' | 'srNo' | 'timestamp' | 'createdBy'>, showToast = true) => {
+  const addActivity = useCallback((activity: Omit<Activity, 'id' | 'srNo' | 'timestamp' | 'createdBy' | 'source' | 'groupName'>, showToast = true) => {
     if (!db || !user) return;
-    const newActivity = { 
-        ...activity, 
-        srNo: getNextSrNo(activities),
-        timestamp: serverTimestamp(),
-        createdBy: user.uid,
+
+    // Determine the correct Telegram group for the action
+    const userActions = ['Updated User', 'Deleted User', 'Added User'];
+    const groupName = userActions.includes(activity.action) ? 'USERS' : 'ACTIVITY';
+
+    const newActivity: Omit<Activity, 'id'> = {
+      ...activity,
+      srNo: getNextSrNo(activities),
+      timestamp: serverTimestamp() as any,
+      createdBy: user.uid,
+      source: 'UI',
+      groupName: groupName
     };
+
     addDoc(collection(db, 'activities'), newActivity)
       .then(() => {
         if (showToast) {
@@ -241,15 +249,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
             title: activity.action,
             description: activity.description,
           });
+
+          // Send Telegram Notification using the unified structure
+          import('@/lib/notifications').then(({ sendTelegramNotification }) => {
+            sendTelegramNotification({
+              ...newActivity,
+              groupName: groupName
+            });
+          });
         }
       })
       .catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: 'activities',
-            operation: 'create',
-            requestResourceData: newActivity,
-          });
-          errorEmitter.emit('permission-error', permissionError);
+        const permissionError = new FirestorePermissionError({
+          path: 'activities',
+          operation: 'create',
+          requestResourceData: newActivity,
+        });
+        errorEmitter.emit('permission-error', permissionError);
       });
   }, [db, user, activities, toast]);
 
@@ -263,40 +279,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dueDate: Timestamp.fromDate(data.dueDate),
       createdBy: user.uid,
     };
-    
+
     const remindersCollection = collection(db, 'reminders');
     try {
-        await addDoc(remindersCollection, newReminder);
-        if (showToast) {
-            addActivity({
-                employeeName: user.displayName || user.email || 'User',
-                action: 'Added Reminder',
-                description: `Assigned task "${data.taskName}" to ${data.assignedTo.join(', ')}`
-            });
-        }
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: 'reminders',
-            operation: 'create',
-            requestResourceData: newReminder,
+      await addDoc(remindersCollection, newReminder);
+      if (showToast) {
+        addActivity({
+          employeeName: user.displayName || user.email || 'User',
+          action: 'Added Reminder',
+          description: `Assigned task "${data.taskName}" to ${data.assignedTo.join(', ')}`
         });
-        errorEmitter.emit('permission-error', permissionError);
+      }
+    } catch (serverError) {
+      const permissionError = new FirestorePermissionError({
+        path: 'reminders',
+        operation: 'create',
+        requestResourceData: newReminder,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     }
   }, [db, user, reminders, addActivity]);
 
   useEffect(() => {
-    if (activitiesLoading || !user) return; 
+    if (activitiesLoading || !user) return;
 
     const seenCountKey = getSeenCountKey();
     if (seenCountKey) {
-        let storedCount = Number(localStorage.getItem(seenCountKey) || 0);
-        if (storedCount > activities.length) {
-            storedCount = activities.length;
-            localStorage.setItem(seenCountKey, String(storedCount));
-        }
-        setSeenActivitiesCount(storedCount);
+      let storedCount = Number(localStorage.getItem(seenCountKey) || 0);
+      if (storedCount > activities.length) {
+        storedCount = activities.length;
+        localStorage.setItem(seenCountKey, String(storedCount));
+      }
+      setSeenActivitiesCount(storedCount);
     } else {
-        setSeenActivitiesCount(0);
+      setSeenActivitiesCount(0);
     }
   }, [activities.length, activitiesLoading, user, getSeenCountKey]);
 
@@ -305,11 +321,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const total = activities.length;
     const seenCountKey = getSeenCountKey();
     if (seenCountKey) {
-        setSeenActivitiesCount(total);
-        localStorage.setItem(seenCountKey, String(total));
+      setSeenActivitiesCount(total);
+      localStorage.setItem(seenCountKey, String(total));
     }
   }, [activities.length, getSeenCountKey]);
-  
+
 
   useEffect(() => {
     if (!db || !user) {
@@ -336,7 +352,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPaymentsLoading(false);
       return;
     }
-    
+
     // Set loading true when user changes
     setNumbersLoading(true);
     setSalesLoading(true);
@@ -357,11 +373,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       { name: 'dealerPurchases', setter: setDealerPurchases, loader: setDealerPurchasesLoading },
       { name: 'prebookings', setter: setPreBookings, loader: setPreBookingsLoading },
       { name: 'payments', setter: setPayments, loader: setPaymentsLoading },
-      { name: 'users', setter: (data: User[]) => {
+      {
+        name: 'users', setter: (data: User[]) => {
           setUsers(data);
           setEmployees(data.map(u => u.displayName).sort())
-        }, 
-        loader: setUsersLoading 
+        },
+        loader: setUsersLoading
       },
     ];
 
@@ -382,8 +399,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         loader(false);
       }, (error) => {
         const permissionError = new FirestorePermissionError({
-            path: collectionRef.path,
-            operation: 'list',
+          path: collectionRef.path,
+          operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
         loader(false);
@@ -412,14 +429,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Effect to derive vendors list
   useEffect(() => {
     const defaultVendors = [
-        "lifetimenumber",
-        "vipnumberstore",
-        "vipnumbershop",
-        "numberwale",
-        "numberspoint",
-        "vipfancynumber",
-        "numberatm",
-        "numbersolution"
+      "lifetimenumber",
+      "vipnumberstore",
+      "vipnumbershop",
+      "numberwale",
+      "numberspoint",
+      "vipfancynumber",
+      "numberatm",
+      "numbersolution"
     ];
     const allSalesVendors = sales.map(s => s.soldTo).filter(Boolean);
     const uniqueVendors = [...new Set([...defaultVendors, ...allSalesVendors])];
@@ -463,30 +480,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
 
     const preBookingHistory: GlobalHistoryRecord[] = preBookings.map(pb => ({
-        id: `prebookings-${pb.id}`,
-        mobile: pb.mobile,
-        rtpStatus: pb.originalNumberData?.status || 'N/A',
-        numberType: pb.originalNumberData?.numberType || 'N/A',
-        currentStage: 'Pre-Booked',
-        purchaseInfo: pb.originalNumberData ? {
-            purchaseFrom: pb.originalNumberData.purchaseFrom,
-            purchaseDate: pb.originalNumberData.purchaseDate,
-            purchasePrice: pb.originalNumberData.purchasePrice,
-        } : undefined,
-        history: pb.originalNumberData?.history,
+      id: `prebookings-${pb.id}`,
+      mobile: pb.mobile,
+      rtpStatus: pb.originalNumberData?.status || 'N/A',
+      numberType: pb.originalNumberData?.numberType || 'N/A',
+      currentStage: 'Pre-Booked',
+      purchaseInfo: pb.originalNumberData ? {
+        purchaseFrom: pb.originalNumberData.purchaseFrom,
+        purchaseDate: pb.originalNumberData.purchaseDate,
+        purchasePrice: pb.originalNumberData.purchasePrice,
+      } : undefined,
+      history: pb.originalNumberData?.history,
     }));
-    
+
     const dealerPurchaseHistory: GlobalHistoryRecord[] = dealerPurchases.map(dp => ({
-        id: `dealerPurchases-${dp.id}`,
-        mobile: dp.mobile,
-        rtpStatus: 'N/A',
-        numberType: 'N/A',
-        currentStage: 'Dealer Purchase',
-        purchaseInfo: {
-            purchaseFrom: dp.dealerName,
-            purchaseDate: null, // This info is not available in DealerPurchaseRecord
-            purchasePrice: dp.price,
-        },
+      id: `dealerPurchases-${dp.id}`,
+      mobile: dp.mobile,
+      rtpStatus: 'N/A',
+      numberType: 'N/A',
+      currentStage: 'Dealer Purchase',
+      purchaseInfo: {
+        purchaseFrom: dp.dealerName,
+        purchaseDate: null, // This info is not available in DealerPurchaseRecord
+        purchasePrice: dp.price,
+      },
     }));
 
     const deletedHistory: GlobalHistoryRecord[] = deletedNumbers.map(dn => ({
@@ -520,7 +537,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...dealerPurchases.map(dp => dp.mobile),
       ...preBookings.map(pb => pb.mobile),
     ]);
-  
+
     // For an update operation, we need to check if the new mobile number
     // exists anywhere *except* for the document being updated.
     if (currentId) {
@@ -530,7 +547,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return false;
     }
-  
+
     return allMobiles.has(mobile);
   };
 
@@ -541,48 +558,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const checkRtpDates = async () => {
-        if (!db) return;
+      if (!db) return;
 
-        const batch = writeBatch(db);
-        const updatedIds: string[] = [];
-        
-        numbers.forEach(num => {
-            if (num.status === 'Non-RTP' && num.rtpDate) {
-                const rtpDateObj = num.rtpDate.toDate();
-                if (isValid(rtpDateObj) && (isToday(rtpDateObj) || isPast(rtpDateObj))) {
-                    const docRef = doc(db, 'numbers', num.id);
-                    const historyEvent = createLifecycleEvent('RTP Status Changed', 'Number automatically became RTP as per schedule.', 'System');
-                    batch.update(docRef, { status: 'RTP', rtpDate: null, history: arrayUnion(historyEvent) });
-                    addActivity({
-                        employeeName: 'System',
-                        action: 'Auto-updated to RTP',
-                        description: `Number ${num.mobile} automatically became RTP.`
-                    }, false);
-                    updatedIds.push(num.id);
-                }
-            }
-        });
+      const batch = writeBatch(db);
+      const updatedIds: string[] = [];
 
-        if (updatedIds.length > 0) {
-            setRecentlyAutoRtpIds(updatedIds);
-            setTimeout(() => setRecentlyAutoRtpIds([]), 5 * 60 * 1000); // Clear after 5 minutes
-            
-            await batch.commit().catch(async (serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: 'numbers',
-                    operation: 'update',
-                    requestResourceData: {info: 'Batch update for RTP status'},
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
+      numbers.forEach(num => {
+        if (num.status === 'Non-RTP' && num.rtpDate) {
+          const rtpDateObj = num.rtpDate.toDate();
+          if (isValid(rtpDateObj) && (isToday(rtpDateObj) || isPast(rtpDateObj))) {
+            const docRef = doc(db, 'numbers', num.id);
+            const historyEvent = createLifecycleEvent('RTP Status Changed', 'Number automatically became RTP as per schedule.', 'System');
+            batch.update(docRef, { status: 'RTP', rtpDate: null, history: arrayUnion(historyEvent) });
+            addActivity({
+              employeeName: 'System',
+              action: 'Auto-updated to RTP',
+              description: `Number ${num.mobile} automatically became RTP.`
+            }, false);
+            updatedIds.push(num.id);
+          }
         }
+      });
+
+      if (updatedIds.length > 0) {
+        setRecentlyAutoRtpIds(updatedIds);
+        setTimeout(() => setRecentlyAutoRtpIds([]), 5 * 60 * 1000); // Clear after 5 minutes
+
+        await batch.commit().catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: 'numbers',
+            operation: 'update',
+            requestResourceData: { info: 'Batch update for RTP status' },
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+      }
     };
 
     checkRtpDates();
     const interval = setInterval(checkRtpDates, 60000);
     return () => clearInterval(interval);
   }, [db, numbers, numbersLoading, authLoading, user, addActivity, createLifecycleEvent]);
-  
+
   useEffect(() => {
     const createSystemReminders = async () => {
       if (loading || !user || !db || !users.length || !reminders) return;
@@ -594,48 +611,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
       let currentReminderSrNo = getNextSrNo(reminders);
       const remindersCollection = collection(db, 'reminders');
       let operationsExist = false;
-      
+
       const existingTaskIds = new Set(reminders.map(r => r.taskId).filter(Boolean));
 
       // COCP Safe Custody Date Reminders
       const cocpNumbers = numbers.filter(n => n.numberType === 'COCP' && n.safeCustodyDate && (isToday(n.safeCustodyDate.toDate()) || isPast(n.safeCustodyDate.toDate())));
       for (const num of cocpNumbers) {
         const taskId = `cocp-safecustody-${num.id}`;
-         if (!existingTaskIds.has(taskId)) {
-            batch.set(doc(remindersCollection), {
-              taskId: taskId,
-              taskName: `Safe Custody Date arrived for ${num.mobile}`,
-              assignedTo: adminUsers,
-              dueDate: num.safeCustodyDate,
-              status: 'Pending', createdBy: 'system', srNo: currentReminderSrNo++,
-            });
-            operationsExist = true;
-            addActivity({
-                employeeName: 'System',
-                action: 'Safe Custody Date Arrived',
-                description: `Safe Custody Date for COCP number ${num.mobile} has arrived.`,
-            }, false);
-         }
+        if (!existingTaskIds.has(taskId)) {
+          batch.set(doc(remindersCollection), {
+            taskId: taskId,
+            taskName: `Safe Custody Date arrived for ${num.mobile}`,
+            assignedTo: adminUsers,
+            dueDate: num.safeCustodyDate,
+            status: 'Pending', createdBy: 'system', srNo: currentReminderSrNo++,
+          });
+          operationsExist = true;
+          addActivity({
+            employeeName: 'System',
+            action: 'Safe Custody Date Arrived',
+            description: `Safe Custody Date for COCP number ${num.mobile} has arrived.`,
+          }, false);
+        }
       }
-      
+
       // Pre-Booked RTP Reminders
       const rtpPreBookings = preBookings.filter(pb => pb.originalNumberData?.status === 'RTP');
       for (const pb of rtpPreBookings) {
-          const taskId = `prebooked-rtp-${pb.id}`;
-          if (!existingTaskIds.has(taskId)) {
-             batch.set(doc(remindersCollection), {
-                taskId: taskId,
-                taskName: `Pre-Booked Number is now RTP: ${pb.mobile}`,
-                assignedTo: adminUsers,
-                dueDate: Timestamp.now(),
-                status: 'Pending', createdBy: 'system', srNo: currentReminderSrNo++,
-             });
-             operationsExist = true;
-          }
+        const taskId = `prebooked-rtp-${pb.id}`;
+        if (!existingTaskIds.has(taskId)) {
+          batch.set(doc(remindersCollection), {
+            taskId: taskId,
+            taskName: `Pre-Booked Number is now RTP: ${pb.mobile}`,
+            assignedTo: adminUsers,
+            dueDate: Timestamp.now(),
+            status: 'Pending', createdBy: 'system', srNo: currentReminderSrNo++,
+          });
+          operationsExist = true;
+        }
       }
-      
+
       if (operationsExist) {
-         await batch.commit().catch(e => console.error("Error in system reminder creation batch:", e));
+        await batch.commit().catch(e => console.error("Error in system reminder creation batch:", e));
       }
     };
 
@@ -665,7 +682,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setRemindersShownInPopup(newShownSet);
       }
     };
-    const timeoutId = setTimeout(checkAndShowPopup, 2000); 
+    const timeoutId = setTimeout(checkAndShowPopup, 2000);
     const intervalId = setInterval(checkAndShowPopup, 15 * 60 * 1000);
     return () => {
       clearTimeout(timeoutId);
@@ -697,21 +714,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         remindersToDelete.forEach(reminder => {
           batch.delete(doc(db, 'reminders', reminder.id));
         });
-        
+
         await batch.commit().catch(e => console.error("Error auto-deleting reminders:", e));
-        
+
         addActivity({
-            employeeName: 'System',
-            action: 'Auto-deleted reminders',
-            description: `Automatically deleted ${remindersToDelete.length} completed reminder(s) older than 7 days.`,
+          employeeName: 'System',
+          action: 'Auto-deleted reminders',
+          description: `Automatically deleted ${remindersToDelete.length} completed reminder(s) older than 7 days.`,
         }, false);
       }
     };
-    
+
     // Run once on load, then set an interval
     cleanupOldReminders();
     const intervalId = setInterval(cleanupOldReminders, 24 * 60 * 60 * 1000); // Check once a day
-    
+
     return () => clearInterval(intervalId);
 
   }, [db, reminders, remindersLoading, role, addActivity]);
@@ -727,26 +744,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     const docRef = doc(db, 'users', uid);
     const updateData = {
-        displayName: data.displayName,
-        telegramUsername: data.telegramUsername || null,
+      displayName: data.displayName,
+      telegramUsername: data.telegramUsername || null,
     };
     updateDoc(docRef, updateData).then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Updated User',
-            description: `Updated details for user ${data.displayName}.`
-        });
-        toast({
-            title: "User Updated",
-            description: `Details for ${data.displayName} have been saved.`
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Updated User',
+        description: `Updated details for user ${data.displayName}.`
+      });
+      toast({
+        title: "User Updated",
+        description: `Details for ${data.displayName} have been saved.`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: updateData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -758,7 +775,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Details Updated', `Number details updated by ${performedBy}.`, performedBy);
-  
+
     const updateData: Partial<NumberRecord> = {
       ...data,
       sum: calculateDigitalRoot(data.mobile),
@@ -768,8 +785,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       billDate: data.billDate ? Timestamp.fromDate(data.billDate) : null,
       salePrice: data.salePrice || 0,
     };
-  
-    await updateDoc(numDocRef, {...sanitizeObjectForFirestore(updateData), history: arrayUnion(historyEvent) })
+
+    await updateDoc(numDocRef, { ...sanitizeObjectForFirestore(updateData), history: arrayUnion(historyEvent) })
       .then(() => {
         addActivity({
           employeeName: user.displayName || user.email || 'User',
@@ -801,25 +818,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
 
     const updateData: any = {
-        status: status,
-        rtpDate: status === 'RTP' ? null : (rtpDate ? Timestamp.fromDate(rtpDate) : null)
+      status: status,
+      rtpDate: status === 'RTP' ? null : (rtpDate ? Timestamp.fromDate(rtpDate) : null)
     };
     if (note) {
-        updateData.notes = `${num.notes || ''}\n${note}`.trim();
+      updateData.notes = `${num.notes || ''}\n${note}`.trim();
     }
-    updateDoc(numDocRef, {...updateData, history: arrayUnion(historyEvent)}).then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Updated RTP Status',
-            description: `Marked ${num.mobile} as ${status}`
-        });
+    updateDoc(numDocRef, { ...updateData, history: arrayUnion(historyEvent) }).then(() => {
+      addActivity({
+        employeeName: performedBy,
+        action: 'Updated RTP Status',
+        description: `Marked ${num.mobile} as ${status}`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: numDocRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: numDocRef.path,
+        operation: 'update',
+        requestResourceData: updateData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -828,25 +845,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const numDocRef = doc(db, 'numbers', id);
     const num = numbers.find(n => n.id === id);
     if (!num) return;
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Upload Status Changed', `Upload status changed to ${uploadStatus}.`, performedBy);
 
     const updateData = { uploadStatus };
-    
-    updateDoc(numDocRef, {...updateData, history: arrayUnion(historyEvent)}).then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Updated Upload Status',
-            description: `Set upload status for ${num.mobile} to ${uploadStatus}`
-        });
+
+    updateDoc(numDocRef, { ...updateData, history: arrayUnion(historyEvent) }).then(() => {
+      addActivity({
+        employeeName: performedBy,
+        action: 'Updated Upload Status',
+        description: `Set upload status for ${num.mobile} to ${uploadStatus}`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: numDocRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: numDocRef.path,
+        operation: 'update',
+        requestResourceData: updateData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -861,25 +878,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     numberIds.forEach(id => {
       const docRef = doc(db, 'numbers', id);
-      batch.update(docRef, {...updateData, history: arrayUnion(historyEvent)});
+      batch.update(docRef, { ...updateData, history: arrayUnion(historyEvent) });
     });
     batch.commit().then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Bulk Updated Upload Status',
-            description: createDetailedDescription(`Updated upload status to ${uploadStatus} for`, affectedNumbers)
-        });
-         toast({
-            title: "Update Successful",
-            description: `Updated upload status for ${numberIds.length} record(s).`
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Bulk Updated Upload Status',
+        description: createDetailedDescription(`Updated upload status to ${uploadStatus} for`, affectedNumbers)
+      });
+      toast({
+        title: "Update Successful",
+        description: `Updated upload status for ${numberIds.length} record(s).`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'update',
-            requestResourceData: {info: `Bulk upload status update for ${numberIds.length} numbers`},
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers',
+        operation: 'update',
+        requestResourceData: { info: `Bulk upload status update for ${numberIds.length} numbers` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -916,38 +933,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { canBeDone, message } = canReminderBeMarkedDone(reminder);
 
     if (!canBeDone) {
-        toast({
-            variant: "destructive",
-            title: "Action Required",
-            description: message,
-            duration: 7000,
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Action Required",
+        description: message,
+        duration: 7000,
+      });
+      return;
     }
 
     const reminderDocRef = doc(db, 'reminders', id);
 
-    const updateData: { status: 'Done'; notes?: string; completionDate: Timestamp } = { 
-        status: 'Done',
-        completionDate: Timestamp.now(),
+    const updateData: { status: 'Done'; notes?: string; completionDate: Timestamp } = {
+      status: 'Done',
+      completionDate: Timestamp.now(),
     };
     if (note) {
       updateData.notes = note;
     }
-    
+
     updateDoc(reminderDocRef, updateData).then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Marked Task Done',
-            description: `Completed task: ${reminder.taskName}`
-        })
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Marked Task Done',
+        description: `Completed task: ${reminder.taskName}`
+      })
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: reminderDocRef.path,
-            operation: 'update',
-            requestResourceData: { status: 'Done', note },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: reminderDocRef.path,
+        operation: 'update',
+        requestResourceData: { status: 'Done', note },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -957,35 +974,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const performedBy = user.displayName || user.email || 'User';
 
     const historyEvent = createLifecycleEvent('Assigned', `Assigned to ${employeeName} and moved to ${location.currentLocation}.`, performedBy);
-    
+
     const updateData = {
-        assignedTo: employeeName,
-        name: employeeName,
-        locationType: location.locationType,
-        currentLocation: location.currentLocation,
+      assignedTo: employeeName,
+      name: employeeName,
+      locationType: location.locationType,
+      currentLocation: location.currentLocation,
     };
     const affectedNumbers = numbers.filter(n => numberIds.includes(n.id)).map(n => n.mobile);
 
     numberIds.forEach(id => {
       const docRef = doc(db, 'numbers', id);
-      batch.update(docRef, {...updateData, history: arrayUnion(historyEvent)});
+      batch.update(docRef, { ...updateData, history: arrayUnion(historyEvent) });
     });
     batch.commit().then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Assigned Numbers',
-            description: createDetailedDescription(`Assigned to ${employeeName}:`, affectedNumbers)
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Assigned Numbers',
+        description: createDetailedDescription(`Assigned to ${employeeName}:`, affectedNumbers)
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'update',
-            requestResourceData: {info: `Batch assign to ${employeeName}`},
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers',
+        operation: 'update',
+        requestResourceData: { info: `Batch assign to ${employeeName}` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
-  
+
   const checkInNumber = (id: string) => {
     if (!db || !user) return;
     const num = numbers.find(n => n.id === id);
@@ -995,18 +1012,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const historyEvent = createLifecycleEvent('Checked In', `SIM Checked In at ${num.currentLocation}.`, performedBy);
 
     updateDoc(numDocRef, { checkInDate: Timestamp.now(), history: arrayUnion(historyEvent) }).then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Checked In Number',
-            description: `Checked in SIM number ${num.mobile}.`
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Checked In Number',
+        description: `Checked in SIM number ${num.mobile}.`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: numDocRef.path,
-            operation: 'update',
-            requestResourceData: { checkInDate: 'NOW' },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: numDocRef.path,
+        operation: 'update',
+        requestResourceData: { checkInDate: 'NOW' },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1016,13 +1033,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!soldNumber) return;
 
     const { id: numberId, ...originalDataWithoutId } = soldNumber;
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Sold', `Sold to ${details.soldTo} for ₹${details.salePrice}.`, performedBy);
-    
+
     const history = [...(originalDataWithoutId.history || []), historyEvent];
 
-    const sanitizedOriginalData = sanitizeObjectForFirestore({...originalDataWithoutId, history });
+    const sanitizedOriginalData = sanitizeObjectForFirestore({ ...originalDataWithoutId, history });
 
     const newSale: Omit<SaleRecord, 'id'> = {
       srNo: getNextSrNo(sales),
@@ -1040,18 +1057,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     batch.set(doc(collection(db, 'sales')), newSale);
     batch.delete(doc(db, 'numbers', id));
     batch.commit().then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Sold Number',
-            description: `Sold number ${soldNumber.mobile} to ${details.soldTo} for ₹${details.salePrice}`
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Sold Number',
+        description: `Sold number ${soldNumber.mobile} to ${details.soldTo} for ₹${details.salePrice}`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'sales',
-            operation: 'create',
-            requestResourceData: { info: `Sell number ${soldNumber.mobile}` },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'sales',
+        operation: 'create',
+        requestResourceData: { info: `Sell number ${soldNumber.mobile}` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1067,9 +1084,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     numbersToSell.forEach(soldNumber => {
       const { id: numberId, ...originalDataWithoutId } = soldNumber;
-      
+
       const history = [...(originalDataWithoutId.history || []), historyEvent];
-      const sanitizedOriginalData = sanitizeObjectForFirestore({...originalDataWithoutId, history });
+      const sanitizedOriginalData = sanitizeObjectForFirestore({ ...originalDataWithoutId, history });
 
       const newSale: Omit<SaleRecord, 'id'> = {
         srNo: currentSaleSrNo++,
@@ -1082,85 +1099,85 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdBy: user.uid,
         originalNumberData: sanitizedOriginalData,
       };
-      
+
       batch.set(doc(collection(db, 'sales')), newSale);
       batch.delete(doc(db, 'numbers', soldNumber.id));
     });
 
     batch.commit().then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Bulk Sold Numbers',
-            description: createDetailedDescription(`Sold to ${details.soldTo}:`, affectedNumbers)
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Bulk Sold Numbers',
+        description: createDetailedDescription(`Sold to ${details.soldTo}:`, affectedNumbers)
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'sales/numbers',
-            operation: 'write',
-            requestResourceData: { info: `Bulk sell of ${numbersToSell.length} numbers.` },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'sales/numbers',
+        operation: 'write',
+        requestResourceData: { info: `Bulk sell of ${numbersToSell.length} numbers.` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
   const cancelSale = (saleId: string) => {
     if (!db || !user) return;
     const saleToCancel = sales.find(s => s.id === saleId);
-    
+
     if (!saleToCancel) {
-         toast({
-            variant: "destructive",
-            title: "Cancellation Failed",
-            description: "Could not find the sale record.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Cancellation Failed",
+        description: "Could not find the sale record.",
+      });
+      return;
     }
-    
+
     if (!saleToCancel.originalNumberData) {
-        toast({
-            variant: "destructive",
-            title: "Cancellation Failed",
-            description: "Could not find original number data to restore.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Cancellation Failed",
+        description: "Could not find original number data to restore.",
+      });
+      return;
     }
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Sale Cancelled', `Sale cancelled and number returned to inventory.`, performedBy);
 
     const restoredNumberData = sanitizeObjectForFirestore({
-        ...saleToCancel.originalNumberData,
-        history: [...(saleToCancel.originalNumberData.history || []), historyEvent]
+      ...saleToCancel.originalNumberData,
+      history: [...(saleToCancel.originalNumberData.history || []), historyEvent]
     });
 
     const restoredNumber: Omit<NumberRecord, 'id'> = {
-        ...(restoredNumberData as Omit<NumberRecord, 'id'>),
-        assignedTo: 'Unassigned',
-        name: 'Unassigned',
+      ...(restoredNumberData as Omit<NumberRecord, 'id'>),
+      assignedTo: 'Unassigned',
+      name: 'Unassigned',
     };
 
     const batch = writeBatch(db);
     batch.set(doc(collection(db, 'numbers')), restoredNumber);
     batch.delete(doc(db, 'sales', saleId));
     batch.commit().then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Cancelled Sale',
-            description: `Sale of number ${saleToCancel.mobile} was cancelled and it was returned to inventory.`
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Cancelled Sale',
+        description: `Sale of number ${saleToCancel.mobile} was cancelled and it was returned to inventory.`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'sales/numbers',
-            operation: 'write',
-            requestResourceData: { info: `Cancel sale for ${saleToCancel.mobile}` },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'sales/numbers',
+        operation: 'write',
+        requestResourceData: { info: `Cancel sale for ${saleToCancel.mobile}` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
   const addNumber = (data: NewNumberData) => {
     if (!db || !user) return;
-    
+
     if (isMobileNumberDuplicate(data.mobile)) {
       toast({
         variant: 'destructive',
@@ -1169,36 +1186,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Created', `Number added to inventory by ${performedBy}.`, performedBy);
 
     const newNumber: Partial<NumberRecord> = {
-        ...data,
-        srNo: getNextSrNo(numbers),
-        sum: calculateDigitalRoot(data.mobile),
-        rtpDate: data.status === 'Non-RTP' && data.rtpDate ? Timestamp.fromDate(data.rtpDate) : null,
-        safeCustodyDate: data.numberType === 'COCP' && data.safeCustodyDate ? Timestamp.fromDate(data.safeCustodyDate) : null,
-        billDate: data.numberType === 'Postpaid' && data.billDate ? Timestamp.fromDate(data.billDate) : null,
-        assignedTo: data.assignedTo || 'Unassigned',
-        name: data.assignedTo || 'Unassigned',
-        checkInDate: null,
-        createdBy: user.uid,
-        purchaseDate: Timestamp.fromDate(data.purchaseDate),
-        history: [historyEvent]
+      ...data,
+      srNo: getNextSrNo(numbers),
+      sum: calculateDigitalRoot(data.mobile),
+      rtpDate: data.status === 'Non-RTP' && data.rtpDate ? Timestamp.fromDate(data.rtpDate) : null,
+      safeCustodyDate: data.numberType === 'COCP' && data.safeCustodyDate ? Timestamp.fromDate(data.safeCustodyDate) : null,
+      billDate: data.numberType === 'Postpaid' && data.billDate ? Timestamp.fromDate(data.billDate) : null,
+      assignedTo: data.assignedTo || 'Unassigned',
+      name: data.assignedTo || 'Unassigned',
+      checkInDate: null,
+      createdBy: user.uid,
+      purchaseDate: Timestamp.fromDate(data.purchaseDate),
+      history: [historyEvent]
     };
 
     if (data.ownershipType !== 'Partnership') {
-        newNumber.partnerName = '';
+      newNumber.partnerName = '';
     } else {
-        newNumber.partnerName = data.partnerName;
+      newNumber.partnerName = data.partnerName;
     }
-    
+
     if (data.numberType === 'COCP') {
-        newNumber.accountName = data.accountName;
+      newNumber.accountName = data.accountName;
     } else {
-        delete (newNumber as any).accountName;
-        delete (newNumber as any).safeCustodyDate;
+      delete (newNumber as any).accountName;
+      delete (newNumber as any).safeCustodyDate;
     }
 
     if (data.numberType !== 'Postpaid') {
@@ -1208,24 +1225,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const numbersCollection = collection(db, 'numbers');
     addDoc(numbersCollection, sanitizeObjectForFirestore(newNumber)).then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Added Number',
-            description: `Manually added new number ${data.mobile}`
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Added Number',
+        description: `Manually added new number ${data.mobile}`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'create',
-            requestResourceData: newNumber,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers',
+        operation: 'create',
+        requestResourceData: newNumber,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
   const addMultipleNumbers = async (data: NewNumberData, validNumbers: string[]) => {
     if (!db || !user || validNumbers.length === 0) return;
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Created', `Number added to inventory via bulk add by ${performedBy}.`, performedBy);
     let currentSrNo = getNextSrNo(numbers);
@@ -1235,19 +1252,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     validNumbers.forEach(mobile => {
       const newDocRef = doc(numbersCollection);
       const newNumber: Partial<NumberRecord> = {
-          ...data,
-          mobile,
-          srNo: currentSrNo++,
-          sum: calculateDigitalRoot(mobile),
-          rtpDate: data.status === 'Non-RTP' && data.rtpDate ? Timestamp.fromDate(data.rtpDate) : null,
-          safeCustodyDate: data.numberType === 'COCP' && data.safeCustodyDate ? Timestamp.fromDate(data.safeCustodyDate) : null,
-          billDate: data.numberType === 'Postpaid' && data.billDate ? Timestamp.fromDate(data.billDate) : null,
-          assignedTo: data.assignedTo || 'Unassigned',
-          name: data.assignedTo || 'Unassigned',
-          checkInDate: null,
-          createdBy: user.uid,
-          purchaseDate: Timestamp.fromDate(data.purchaseDate),
-          history: [historyEvent]
+        ...data,
+        mobile,
+        srNo: currentSrNo++,
+        sum: calculateDigitalRoot(mobile),
+        rtpDate: data.status === 'Non-RTP' && data.rtpDate ? Timestamp.fromDate(data.rtpDate) : null,
+        safeCustodyDate: data.numberType === 'COCP' && data.safeCustodyDate ? Timestamp.fromDate(data.safeCustodyDate) : null,
+        billDate: data.numberType === 'Postpaid' && data.billDate ? Timestamp.fromDate(data.billDate) : null,
+        assignedTo: data.assignedTo || 'Unassigned',
+        name: data.assignedTo || 'Unassigned',
+        checkInDate: null,
+        createdBy: user.uid,
+        purchaseDate: Timestamp.fromDate(data.purchaseDate),
+        history: [historyEvent]
       };
 
       if (data.ownershipType !== 'Partnership') newNumber.partnerName = '';
@@ -1263,26 +1280,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     await batch.commit().then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Bulk Added Numbers',
-            description: createDetailedDescription('Added', validNumbers)
-        });
-        let toastDescription = `Successfully added ${validNumbers.length} number(s).`;
-        toast({
-          title: 'Bulk Add Complete',
-          description: toastDescription,
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Bulk Added Numbers',
+        description: createDetailedDescription('Added', validNumbers)
+      });
+      let toastDescription = `Successfully added ${validNumbers.length} number(s).`;
+      toast({
+        title: 'Bulk Add Complete',
+        description: toastDescription,
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'create',
-            requestResourceData: { info: `Bulk add of ${validNumbers.length} numbers.` },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers',
+        operation: 'create',
+        requestResourceData: { info: `Bulk add of ${validNumbers.length} numbers.` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
-  
+
   const addDealerPurchase = (data: NewDealerPurchaseData) => {
     if (!db || !user) return;
 
@@ -1303,18 +1320,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     const dealerPurchasesCollection = collection(db, 'dealerPurchases');
     addDoc(dealerPurchasesCollection, newPurchase).then(() => {
-        addActivity({
-          employeeName: user.displayName || user.email || 'User',
-          action: 'Added Dealer Purchase',
-          description: `Added new dealer purchase for ${data.mobile}`,
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Added Dealer Purchase',
+        description: `Added new dealer purchase for ${data.mobile}`,
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'dealerPurchases',
-            operation: 'create',
-            requestResourceData: newPurchase,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'dealerPurchases',
+        operation: 'create',
+        requestResourceData: newPurchase,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1353,25 +1370,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return;
     };
-    
+
     const batch = writeBatch(db);
     activityIds.forEach(id => {
-        batch.delete(doc(db, 'activities', id));
+      batch.delete(doc(db, 'activities', id));
     });
 
     batch.commit().then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Deleted Activities',
-            description: `Deleted ${activityIds.length} activity record(s).`
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Deleted Activities',
+        description: `Deleted ${activityIds.length} activity record(s).`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'activities',
-            operation: 'delete',
-            requestResourceData: {info: `Batch delete ${activityIds.length} activities`},
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'activities',
+        operation: 'delete',
+        requestResourceData: { info: `Batch delete ${activityIds.length} activities` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   }
 
@@ -1384,20 +1401,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const historyEvent = createLifecycleEvent('COCP Date Changed', `Safe Custody Date changed to ${newDate.toLocaleDateString()}.`, performedBy);
     const numDocRef = doc(db, 'numbers', numberId);
     const updateData = { safeCustodyDate: Timestamp.fromDate(newDate) };
-    
-    updateDoc(numDocRef, {...updateData, history: arrayUnion(historyEvent)}).then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Updated Safe Custody Date',
-            description: `Updated Safe Custody Date for ${num.mobile} to ${newDate.toLocaleDateString()}`
-        });
+
+    updateDoc(numDocRef, { ...updateData, history: arrayUnion(historyEvent) }).then(() => {
+      addActivity({
+        employeeName: performedBy,
+        action: 'Updated Safe Custody Date',
+        description: `Updated Safe Custody Date for ${num.mobile} to ${newDate.toLocaleDateString()}`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: numDocRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: numDocRef.path,
+        operation: 'update',
+        requestResourceData: updateData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1410,26 +1427,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const affectedNumbers = numbers.filter(n => numberIds.includes(n.id)).map(n => n.mobile);
 
     numberIds.forEach(id => {
-        const docRef = doc(db, 'numbers', id);
-        batch.update(docRef, {...updateData, history: arrayUnion(historyEvent)});
+      const docRef = doc(db, 'numbers', id);
+      batch.update(docRef, { ...updateData, history: arrayUnion(historyEvent) });
     });
     batch.commit().then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Bulk Updated Safe Custody Date',
-            description: createDetailedDescription(`Updated Safe Custody Date to ${newDate.toLocaleDateString()} for`, affectedNumbers)
-        });
-        toast({
-            title: "Update Successful",
-            description: `Updated Safe Custody Date for ${numberIds.length} record(s).`
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Bulk Updated Safe Custody Date',
+        description: createDetailedDescription(`Updated Safe Custody Date to ${newDate.toLocaleDateString()} for`, affectedNumbers)
+      });
+      toast({
+        title: "Update Successful",
+        description: `Updated Safe Custody Date for ${numberIds.length} record(s).`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'update',
-            requestResourceData: {info: `Bulk update of Safe Custody Date for ${numberIds.length} records`},
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers',
+        operation: 'update',
+        requestResourceData: { info: `Bulk update of Safe Custody Date for ${numberIds.length} records` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1442,14 +1459,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-    
+
     if (!reason?.trim()) {
-        toast({
-            variant: "destructive",
-            title: "Reason Required",
-            description: "A reason for deletion is required.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Reason Required",
+        description: "A reason for deletion is required.",
+      });
+      return;
     }
 
     const numbersToDelete = numbers.filter(n => numberIds.includes(n.id));
@@ -1501,21 +1518,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const restoreDeletedNumber = (deletedNumberId: string) => {
     if (!db || !user || role !== 'admin') {
-        toast({ variant: 'destructive', title: 'Permission Denied', description: 'You cannot restore numbers.' });
-        return;
+      toast({ variant: 'destructive', title: 'Permission Denied', description: 'You cannot restore numbers.' });
+      return;
     }
     const recordToRestore = deletedNumbers.find(dn => dn.id === deletedNumberId);
     if (!recordToRestore) {
-        toast({ variant: 'destructive', title: 'Not Found', description: 'Could not find the deleted record to restore.' });
-        return;
+      toast({ variant: 'destructive', title: 'Not Found', description: 'Could not find the deleted record to restore.' });
+      return;
     }
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Restored', `Number restored to inventory.`, performedBy);
-    
+
     const restoredData = sanitizeObjectForFirestore({
-        ...recordToRestore.originalNumberData,
-        history: [...(recordToRestore.originalNumberData.history || []), historyEvent],
+      ...recordToRestore.originalNumberData,
+      history: [...(recordToRestore.originalNumberData.history || []), historyEvent],
     });
 
     const restoredNumber: Omit<NumberRecord, 'id'> = {
@@ -1527,29 +1544,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     batch.delete(doc(db, 'deletedNumbers', deletedNumberId));
 
     batch.commit().then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Restored Number',
-            description: `Restored number ${recordToRestore.mobile} to the master inventory.`
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Restored Number',
+        description: `Restored number ${recordToRestore.mobile} to the master inventory.`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers/deletedNumbers',
-            operation: 'write',
-            requestResourceData: { info: `Restore number ${recordToRestore.mobile}` },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers/deletedNumbers',
+        operation: 'write',
+        requestResourceData: { info: `Restore number ${recordToRestore.mobile}` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
-  
+
   const deleteUser = (uid: string) => {
     if (!uid) {
-        toast({
-            variant: "destructive",
-            title: "Deletion Failed",
-            description: "Cannot delete user: invalid user ID provided.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Deletion Failed",
+        description: "Cannot delete user: invalid user ID provided.",
+      });
+      return;
     }
     if (!db || !user || role !== 'admin') {
       toast({
@@ -1560,28 +1577,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     if (uid === user.uid) {
-        toast({
-            variant: "destructive",
-            title: "Action Forbidden",
-            description: "You cannot delete your own account.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Action Forbidden",
+        description: "You cannot delete your own account.",
+      });
+      return;
     }
-    const docRef = doc(db, 'users', uid);
-    // This will trigger the onDelete cloud function to delete the user from Auth
-    deleteDoc(docRef).then(() => {
-        const deletedUser = users.find(u => u.uid === uid);
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Deleted User',
-            description: `Deleted the user account for ${deletedUser?.displayName || 'Unknown'}.`
+    const deletedUser = users.find(u => u.uid === uid);
+
+    // Call the Bot Server Admin API to delete the user from both Auth and Firestore
+    import('@/config/env').then(({ env }) => {
+      fetch(`${env.NEXT_PUBLIC_BOT_SERVER_URL}/api/admin/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': env.NEXT_PUBLIC_NOTIFY_API_KEY,
+        },
+        body: JSON.stringify({ userId: uid }),
+      })
+        .then(async (response) => {
+          if (response.ok) {
+            toast({
+              title: "User Deleted",
+              description: `Account for ${deletedUser?.displayName || 'Unknown'} has been removed successfully.`,
+            });
+          } else {
+            const errorData = await response.json();
+            toast({
+              variant: "destructive",
+              title: "Deletion Failed",
+              description: errorData.error || "Failed to delete user account.",
+            });
+          }
+        })
+        .catch((err) => {
+          console.error("❌ Error deleting user:", err);
+          toast({
+            variant: "destructive",
+            title: "Network Error",
+            description: "Could not connect to the security server.",
+          });
         });
-    }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1591,24 +1628,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Location Updated', `Location changed to ${location.currentLocation}.`, performedBy);
     const affectedNumbers = numbers.filter(n => numberIds.includes(n.id)).map(n => n.mobile);
-    
+
     numberIds.forEach(id => {
       const docRef = doc(db, 'numbers', id);
-      batch.update(docRef, {...location, history: arrayUnion(historyEvent)});
+      batch.update(docRef, { ...location, history: arrayUnion(historyEvent) });
     });
     batch.commit().then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Updated Number Location',
-            description: createDetailedDescription(`Updated location to ${location.currentLocation} for`, affectedNumbers)
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Updated Number Location',
+        description: createDetailedDescription(`Updated location to ${location.currentLocation} for`, affectedNumbers)
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'update',
-            requestResourceData: {info: `Batch location update for ${numberIds.length} numbers`},
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers',
+        operation: 'update',
+        requestResourceData: { info: `Batch location update for ${numberIds.length} numbers` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1631,7 +1668,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         uploadStatus: originalData.uploadStatus,
         preBookingDate: Timestamp.now(),
         createdBy: user.uid,
-        originalNumberData: sanitizeObjectForFirestore({...originalData, history}),
+        originalNumberData: sanitizeObjectForFirestore({ ...originalData, history }),
       };
       batch.set(doc(collection(db, 'prebookings')), newPreBooking);
       batch.delete(doc(db, 'numbers', num.id));
@@ -1664,13 +1701,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not find the pre-booking record to cancel.' });
       return;
     }
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Pre-booking Cancelled', `Pre-booking was cancelled.`, performedBy);
-    
+
     const restoredNumberData = sanitizeObjectForFirestore({
-        ...preBookingToCancel.originalNumberData,
-        history: [...(preBookingToCancel.originalNumberData.history || []), historyEvent]
+      ...preBookingToCancel.originalNumberData,
+      history: [...(preBookingToCancel.originalNumberData.history || []), historyEvent]
     });
     const restoredNumber: Omit<NumberRecord, 'id'> = {
       ...(restoredNumberData as Omit<NumberRecord, 'id'>),
@@ -1679,7 +1716,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const batch = writeBatch(db);
     batch.set(doc(collection(db, 'numbers')), restoredNumber);
     batch.delete(doc(db, 'prebookings', preBookingId));
-    
+
     batch.commit().then(() => {
       addActivity({
         employeeName: performedBy,
@@ -1718,13 +1755,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       uploadStatus: preBookingToSell.uploadStatus || 'Pending',
       saleDate: Timestamp.fromDate(details.saleDate),
       createdBy: user.uid,
-      originalNumberData: sanitizeObjectForFirestore({...preBookingToSell.originalNumberData, history}),
+      originalNumberData: sanitizeObjectForFirestore({ ...preBookingToSell.originalNumberData, history }),
     };
 
     const batch = writeBatch(db);
     batch.set(doc(collection(db, 'sales')), newSale);
     batch.delete(doc(db, 'prebookings', preBookingId));
-    
+
     batch.commit().then(() => {
       addActivity({
         employeeName: user.displayName || user.email || 'User',
@@ -1743,7 +1780,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const bulkSellPreBookedNumbers = (preBookedNumbersToSell: NumberRecord[], details: { salePrice: number; soldTo: string; saleDate: Date; }) => {
     if (!db || !user || preBookedNumbersToSell.length === 0) return;
-    
+
     let currentSaleSrNo = getNextSrNo(sales);
     const batch = writeBatch(db);
     const affectedNumbers = preBookedNumbersToSell.map(n => n.mobile);
@@ -1753,9 +1790,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     preBookedNumbersToSell.forEach(pb => {
       const preBookingToSell = preBookings.find(pre => pre.id === pb.id);
       if (!preBookingToSell || !preBookingToSell.originalNumberData) return;
-      
+
       const history = [...(preBookingToSell.originalNumberData.history || []), historyEvent];
-      
+
       const newSale: Omit<SaleRecord, 'id'> = {
         srNo: currentSaleSrNo++,
         mobile: preBookingToSell.mobile,
@@ -1765,189 +1802,189 @@ export function AppProvider({ children }: { children: ReactNode }) {
         uploadStatus: preBookingToSell.uploadStatus || 'Pending',
         saleDate: Timestamp.fromDate(details.saleDate),
         createdBy: user.uid,
-        originalNumberData: sanitizeObjectForFirestore({...preBookingToSell.originalNumberData, history}),
+        originalNumberData: sanitizeObjectForFirestore({ ...preBookingToSell.originalNumberData, history }),
       };
-      
+
       batch.set(doc(collection(db, 'sales')), newSale);
       batch.delete(doc(db, 'prebookings', pb.id));
     });
 
     batch.commit().then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Bulk Sold Pre-Booked',
-            description: createDetailedDescription(`Sold to ${details.soldTo}:`, affectedNumbers)
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Bulk Sold Pre-Booked',
+        description: createDetailedDescription(`Sold to ${details.soldTo}:`, affectedNumbers)
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'sales/prebookings',
-            operation: 'write',
-            requestResourceData: { info: `Bulk sell of ${preBookedNumbersToSell.length} pre-booked numbers.` },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'sales/prebookings',
+        operation: 'write',
+        requestResourceData: { info: `Bulk sell of ${preBookedNumbersToSell.length} pre-booked numbers.` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
   const addPayment = (data: NewPaymentData) => {
     if (!db || !user) return;
     const newPayment: Omit<PaymentRecord, 'id'> = {
-        ...data,
-        srNo: getNextSrNo(payments),
-        paymentDate: Timestamp.fromDate(data.paymentDate),
-        createdBy: user.uid,
+      ...data,
+      srNo: getNextSrNo(payments),
+      paymentDate: Timestamp.fromDate(data.paymentDate),
+      createdBy: user.uid,
     };
     addDoc(collection(db, 'payments'), newPayment).then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Received Payment',
-            description: `Received payment of ₹${data.amount.toLocaleString()} from ${data.vendorName}.`
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Received Payment',
+        description: `Received payment of ₹${data.amount.toLocaleString()} from ${data.vendorName}.`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'payments',
-            operation: 'create',
-            requestResourceData: newPayment,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'payments',
+        operation: 'create',
+        requestResourceData: newPayment,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
 
   const bulkAddNumbers = async (records: any[]): Promise<BulkAddResult> => {
     if (!db || !user) return { successCount: 0, updatedCount: 0, failedRecords: [] };
-    
+
     let currentSrNo = getNextSrNo(numbers);
     const creations: Partial<NumberRecord>[] = [];
     const failedRecords: { record: any, reason: string }[] = [];
 
     const processedMobiles = new Set<string>();
-    
+
     const parseDate = (rawDate: any): Date | null => {
-        if (rawDate instanceof Date && isValid(rawDate)) return rawDate;
-        if (typeof rawDate === 'string') {
-            const dateFormats = ['dd-MM-yyyy', 'MM-dd-yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy', 'yyyy/MM/dd', "M/d/yy", "M/d/yyyy", "MM/dd/yy"];
-            for (const formatStr of dateFormats) {
-                const parsed = parse(rawDate, formatStr, new Date());
-                if (isValid(parsed)) return parsed;
-            }
+      if (rawDate instanceof Date && isValid(rawDate)) return rawDate;
+      if (typeof rawDate === 'string') {
+        const dateFormats = ['dd-MM-yyyy', 'MM-dd-yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy', 'yyyy/MM/dd', "M/d/yy", "M/d/yyyy", "MM/dd/yy"];
+        for (const formatStr of dateFormats) {
+          const parsed = parse(rawDate, formatStr, new Date());
+          if (isValid(parsed)) return parsed;
         }
-        return null;
+      }
+      return null;
     };
 
     for (const record of records) {
-        const mobile = record.Mobile?.toString().trim();
+      const mobile = record.Mobile?.toString().trim();
 
-        if (!mobile || !/^\d{10}$/.test(mobile)) {
-            failedRecords.push({ record, reason: 'Invalid or missing mobile number (must be 10 digits).' });
-            continue;
-        }
-        if (processedMobiles.has(mobile)) {
-            failedRecords.push({ record, reason: 'Duplicate mobile number found within the import file.' });
-            continue;
-        }
-         if (isMobileNumberDuplicate(mobile)) {
-            failedRecords.push({ record, reason: 'Mobile number already exists in the system.' });
-            continue;
-        }
-        
-        const status = record.Status;
-        if (!status || !['RTP', 'Non-RTP'].includes(status)) {
-            failedRecords.push({ record, reason: 'Status is a required field. Must be "RTP" or "Non-RTP".' });
-            continue;
-        }
-        
-        const uploadStatus = ['Pending', 'Done'].includes(record.UploadStatus) ? record.UploadStatus : 'Pending';
-        const numberType = ['Prepaid', 'Postpaid', 'COCP'].includes(record.NumberType) ? record.NumberType : 'Prepaid';
-        const ownershipType = ['Individual', 'Partnership'].includes(record.OwnershipType) ? record.OwnershipType : 'Individual';
-        const partnerName = record.PartnerName?.trim();
+      if (!mobile || !/^\d{10}$/.test(mobile)) {
+        failedRecords.push({ record, reason: 'Invalid or missing mobile number (must be 10 digits).' });
+        continue;
+      }
+      if (processedMobiles.has(mobile)) {
+        failedRecords.push({ record, reason: 'Duplicate mobile number found within the import file.' });
+        continue;
+      }
+      if (isMobileNumberDuplicate(mobile)) {
+        failedRecords.push({ record, reason: 'Mobile number already exists in the system.' });
+        continue;
+      }
 
-        if (ownershipType === 'Partnership' && !partnerName) {
-            failedRecords.push({ record, reason: 'PartnerName is required for Partnership ownership.' });
-            continue;
-        }
+      const status = record.Status;
+      if (!status || !['RTP', 'Non-RTP'].includes(status)) {
+        failedRecords.push({ record, reason: 'Status is a required field. Must be "RTP" or "Non-RTP".' });
+        continue;
+      }
 
-        const safeCustodyDate = parseDate(record.SafeCustodyDate);
-        if (numberType === 'COCP' && !safeCustodyDate) {
-            failedRecords.push({ record, reason: 'Invalid or missing SafeCustodyDate (required for COCP).' });
-            continue;
-        }
+      const uploadStatus = ['Pending', 'Done'].includes(record.UploadStatus) ? record.UploadStatus : 'Pending';
+      const numberType = ['Prepaid', 'Postpaid', 'COCP'].includes(record.NumberType) ? record.NumberType : 'Prepaid';
+      const ownershipType = ['Individual', 'Partnership'].includes(record.OwnershipType) ? record.OwnershipType : 'Individual';
+      const partnerName = record.PartnerName?.trim();
 
-        const accountName = record.AccountName;
-        if (numberType === 'COCP' && !accountName) {
-            failedRecords.push({ record, reason: 'Missing AccountName (required for COCP).' });
-            continue;
-        }
-        
-        const billDate = parseDate(record.BillDate);
-        if (numberType === 'Postpaid' && !billDate) {
-            failedRecords.push({ record, reason: 'Invalid or missing BillDate (required for Postpaid).' });
-            continue;
-        }
+      if (ownershipType === 'Partnership' && !partnerName) {
+        failedRecords.push({ record, reason: 'PartnerName is required for Partnership ownership.' });
+        continue;
+      }
 
-        let rtpDate: Date | null = null;
-        if (status === 'Non-RTP') {
-            rtpDate = parseDate(record.RTPDate);
-             if (!rtpDate) {
-                failedRecords.push({ record, reason: 'Invalid or missing RTPDate (required for Non-RTP status).' });
-                continue;
-            }
-        }
-        
-        const purchaseDate = parseDate(record.PurchaseDate);
-        if (!purchaseDate) {
-             failedRecords.push({ record, reason: 'Invalid or missing PurchaseDate.' });
-             continue;
-        }
-        
-        const purchasePrice = parseFloat(record.PurchasePrice);
-        if (isNaN(purchasePrice)) {
-            failedRecords.push({ record, reason: 'Invalid or missing PurchasePrice. Must be a number.' });
-            continue;
-        }
-        
-        const salePrice = record.SalePrice ? parseFloat(record.SalePrice) : 0;
-        const assignedTo = record.AssignedTo?.trim();
-        const assignedUser = employees.includes(assignedTo) ? assignedTo : 'Unassigned';
+      const safeCustodyDate = parseDate(record.SafeCustodyDate);
+      if (numberType === 'COCP' && !safeCustodyDate) {
+        failedRecords.push({ record, reason: 'Invalid or missing SafeCustodyDate (required for COCP).' });
+        continue;
+      }
 
-        const recordData: Partial<NumberRecord> = {
-            mobile: mobile,
-            name: assignedUser,
-            assignedTo: assignedUser,
-            numberType: numberType,
-            status: status,
-            uploadStatus: uploadStatus,
-            rtpDate: rtpDate ? Timestamp.fromDate(rtpDate) : null,
-            purchaseFrom: record.PurchaseFrom || 'N/A',
-            purchasePrice: purchasePrice,
-            salePrice: isNaN(salePrice) ? 0 : salePrice,
-            purchaseDate: Timestamp.fromDate(purchaseDate),
-            currentLocation: record.CurrentLocation || 'N/A',
-            locationType: ['Store', 'Employee', 'Dealer'].includes(record.LocationType) ? record.LocationType : 'Store',
-            notes: record.Notes || '',
-            ownershipType: ownershipType,
-            partnerName: partnerName || '',
-            sum: calculateDigitalRoot(mobile),
-        };
-        
-        if (numberType === 'COCP') {
-            recordData.safeCustodyDate = safeCustodyDate ? Timestamp.fromDate(safeCustodyDate) : null;
-            recordData.accountName = accountName;
-        }
-        if (numberType === 'Postpaid') {
-            recordData.billDate = billDate ? Timestamp.fromDate(billDate) : null;
-            recordData.pdBill = ['Yes', 'No'].includes(record.PDBill) ? record.PDBill : 'No';
-        }
+      const accountName = record.AccountName;
+      if (numberType === 'COCP' && !accountName) {
+        failedRecords.push({ record, reason: 'Missing AccountName (required for COCP).' });
+        continue;
+      }
 
-        const performedBy = user.displayName || user.email || 'User';
-        const historyEvent = createLifecycleEvent('Created', `Number imported from CSV file.`, performedBy);
+      const billDate = parseDate(record.BillDate);
+      if (numberType === 'Postpaid' && !billDate) {
+        failedRecords.push({ record, reason: 'Invalid or missing BillDate (required for Postpaid).' });
+        continue;
+      }
 
-        creations.push({ ...recordData, srNo: currentSrNo++, createdBy: user.uid, checkInDate: null, history: [historyEvent] });
-        processedMobiles.add(mobile);
+      let rtpDate: Date | null = null;
+      if (status === 'Non-RTP') {
+        rtpDate = parseDate(record.RTPDate);
+        if (!rtpDate) {
+          failedRecords.push({ record, reason: 'Invalid or missing RTPDate (required for Non-RTP status).' });
+          continue;
+        }
+      }
+
+      const purchaseDate = parseDate(record.PurchaseDate);
+      if (!purchaseDate) {
+        failedRecords.push({ record, reason: 'Invalid or missing PurchaseDate.' });
+        continue;
+      }
+
+      const purchasePrice = parseFloat(record.PurchasePrice);
+      if (isNaN(purchasePrice)) {
+        failedRecords.push({ record, reason: 'Invalid or missing PurchasePrice. Must be a number.' });
+        continue;
+      }
+
+      const salePrice = record.SalePrice ? parseFloat(record.SalePrice) : 0;
+      const assignedTo = record.AssignedTo?.trim();
+      const assignedUser = employees.includes(assignedTo) ? assignedTo : 'Unassigned';
+
+      const recordData: Partial<NumberRecord> = {
+        mobile: mobile,
+        name: assignedUser,
+        assignedTo: assignedUser,
+        numberType: numberType,
+        status: status,
+        uploadStatus: uploadStatus,
+        rtpDate: rtpDate ? Timestamp.fromDate(rtpDate) : null,
+        purchaseFrom: record.PurchaseFrom || 'N/A',
+        purchasePrice: purchasePrice,
+        salePrice: isNaN(salePrice) ? 0 : salePrice,
+        purchaseDate: Timestamp.fromDate(purchaseDate),
+        currentLocation: record.CurrentLocation || 'N/A',
+        locationType: ['Store', 'Employee', 'Dealer'].includes(record.LocationType) ? record.LocationType : 'Store',
+        notes: record.Notes || '',
+        ownershipType: ownershipType,
+        partnerName: partnerName || '',
+        sum: calculateDigitalRoot(mobile),
+      };
+
+      if (numberType === 'COCP') {
+        recordData.safeCustodyDate = safeCustodyDate ? Timestamp.fromDate(safeCustodyDate) : null;
+        recordData.accountName = accountName;
+      }
+      if (numberType === 'Postpaid') {
+        recordData.billDate = billDate ? Timestamp.fromDate(billDate) : null;
+        recordData.pdBill = ['Yes', 'No'].includes(record.PDBill) ? record.PDBill : 'No';
+      }
+
+      const performedBy = user.displayName || user.email || 'User';
+      const historyEvent = createLifecycleEvent('Created', `Number imported from CSV file.`, performedBy);
+
+      creations.push({ ...recordData, srNo: currentSrNo++, createdBy: user.uid, checkInDate: null, history: [historyEvent] });
+      processedMobiles.add(mobile);
     }
-    
+
     if (creations.length > 0) {
       const batch = writeBatch(db);
-      
+
       creations.forEach(record => {
         const newDocRef = doc(collection(db, 'numbers'));
         batch.set(newDocRef, sanitizeObjectForFirestore(record));
@@ -1955,17 +1992,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       await batch.commit().catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'write',
-            requestResourceData: {info: `Bulk add of ${creations.length} records.`},
+          path: 'numbers',
+          operation: 'write',
+          requestResourceData: { info: `Bulk add of ${creations.length} records.` },
         });
         errorEmitter.emit('permission-error', permissionError);
         // If the whole batch fails, move all processed records to failed
-        creations.forEach(cr => failedRecords.push({ record: cr, reason: "Firestore permission denied."}));
+        creations.forEach(cr => failedRecords.push({ record: cr, reason: "Firestore permission denied." }));
         return { successCount: 0, updatedCount: 0, failedRecords };
       });
     }
-    
+
     return { successCount: creations.length, updatedCount: 0, failedRecords };
   };
 
@@ -1975,17 +2012,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!reminderToDelete) return;
     const docRef = doc(db, 'reminders', id);
     deleteDoc(docRef).then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Deleted Reminder',
-            description: `Deleted task: ${reminderToDelete.taskName}`
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Deleted Reminder',
+        description: `Deleted task: ${reminderToDelete.taskName}`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'delete',
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -1997,18 +2034,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       batch.update(docRef, { assignedTo: userNames });
     });
     batch.commit().then(() => {
-        addActivity({
-            employeeName: user.displayName || user.email || 'User',
-            action: 'Assigned Reminders',
-            description: `Assigned ${reminderIds.length} reminder(s) to ${userNames.join(', ')}.`
-        });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Assigned Reminders',
+        description: `Assigned ${reminderIds.length} reminder(s) to ${userNames.join(', ')}.`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'reminders',
-            operation: 'update',
-            requestResourceData: { assignedTo: userNames },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'reminders',
+        operation: 'update',
+        requestResourceData: { assignedTo: userNames },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -2016,28 +2053,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!db || !user) return;
     const num = numbers.find(n => n.id === id);
     if (!num) return;
-    
+
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Postpaid Details Updated', `Bill Date set to ${details.billDate.toLocaleDateString()}, PD Bill set to ${details.pdBill}.`, performedBy);
-    
+
     const numDocRef = doc(db, 'numbers', id);
     const updateData = {
-        billDate: Timestamp.fromDate(details.billDate),
-        pdBill: details.pdBill
+      billDate: Timestamp.fromDate(details.billDate),
+      pdBill: details.pdBill
     };
-    updateDoc(numDocRef, {...updateData, history: arrayUnion(historyEvent)}).then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Updated Postpaid Details',
-            description: `Updated bill details for ${num.mobile}.`
-        });
+    updateDoc(numDocRef, { ...updateData, history: arrayUnion(historyEvent) }).then(() => {
+      addActivity({
+        employeeName: performedBy,
+        action: 'Updated Postpaid Details',
+        description: `Updated bill details for ${num.mobile}.`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: numDocRef.path,
-            operation: 'update',
-            requestResourceData: updateData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: numDocRef.path,
+        operation: 'update',
+        requestResourceData: updateData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -2047,71 +2084,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const performedBy = user.displayName || user.email || 'User';
     const historyEvent = createLifecycleEvent('Postpaid Details Updated', `Bulk updated: Bill Date to ${details.billDate.toLocaleDateString()}, PD Bill to ${details.pdBill}.`, performedBy);
     const updateData = {
-        billDate: Timestamp.fromDate(details.billDate),
-        pdBill: details.pdBill
+      billDate: Timestamp.fromDate(details.billDate),
+      pdBill: details.pdBill
     };
     const affectedNumbers = numbers.filter(n => numberIds.includes(n.id)).map(n => n.mobile);
 
     numberIds.forEach(id => {
-        const docRef = doc(db, 'numbers', id);
-        batch.update(docRef, {...updateData, history: arrayUnion(historyEvent)});
+      const docRef = doc(db, 'numbers', id);
+      batch.update(docRef, { ...updateData, history: arrayUnion(historyEvent) });
     });
 
     batch.commit().then(() => {
-        addActivity({
-            employeeName: performedBy,
-            action: 'Bulk Updated Postpaid Details',
-            description: createDetailedDescription(`Updated bill details for`, affectedNumbers)
-        });
-        toast({
-            title: "Update Successful",
-            description: `Updated bill details for ${numberIds.length} record(s).`
-        });
+      addActivity({
+        employeeName: performedBy,
+        action: 'Bulk Updated Postpaid Details',
+        description: createDetailedDescription(`Updated bill details for`, affectedNumbers)
+      });
+      toast({
+        title: "Update Successful",
+        description: `Updated bill details for ${numberIds.length} record(s).`
+      });
     }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'numbers',
-            operation: 'update',
-            requestResourceData: {info: `Bulk update of postpaid details for ${numberIds.length} records`},
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      const permissionError = new FirestorePermissionError({
+        path: 'numbers',
+        operation: 'update',
+        requestResourceData: { info: `Bulk update of postpaid details for ${numberIds.length} records` },
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
   };
 
   const bulkMarkRemindersDone = (reminderIds: string[], note?: string) => {
     if (!db || !user) return;
-    
+
     const remindersToUpdate = reminderIds.map(id => reminders.find(r => r.id === id)).filter(Boolean) as Reminder[];
-    
+
     const remindersThatCanBeDone: Reminder[] = [];
     const remindersThatCannotBeDone: { reminder: Reminder, reason: string }[] = [];
 
     for (const reminder of remindersToUpdate) {
-        const { canBeDone, message } = canReminderBeMarkedDone(reminder);
-        if (canBeDone) {
-            remindersThatCanBeDone.push(reminder);
-        } else {
-            remindersThatCannotBeDone.push({ reminder, reason: message });
-        }
+      const { canBeDone, message } = canReminderBeMarkedDone(reminder);
+      if (canBeDone) {
+        remindersThatCanBeDone.push(reminder);
+      } else {
+        remindersThatCannotBeDone.push({ reminder, reason: message });
+      }
     }
 
     if (remindersThatCannotBeDone.length > 0) {
-        const errorMessages = remindersThatCannotBeDone.map(item => `- ${item.reminder.taskName}: ${item.reason}`).join('\n');
-        toast({
-            variant: "destructive",
-            title: `${remindersThatCannotBeDone.length} reminder(s) could not be marked as done`,
-            description: <pre className="mt-2 w-full rounded-md bg-slate-950 p-4"><code className="text-white whitespace-pre-wrap">{errorMessages}</code></pre>,
-            duration: 10000,
-        });
+      const errorMessages = remindersThatCannotBeDone.map(item => `- ${item.reminder.taskName}: ${item.reason}`).join('\n');
+      toast({
+        variant: "destructive",
+        title: `${remindersThatCannotBeDone.length} reminder(s) could not be marked as done`,
+        description: <pre className="mt-2 w-full rounded-md bg-slate-950 p-4"><code className="text-white whitespace-pre-wrap">{errorMessages}</code></pre>,
+        duration: 10000,
+      });
     }
 
     if (remindersThatCanBeDone.length === 0) {
-        return;
+      return;
     }
-    
+
     const batch = writeBatch(db);
-    const updateData: { status: 'Done'; notes?: string; completionDate: Timestamp } = { 
-        status: 'Done',
-        completionDate: Timestamp.now(),
+    const updateData: { status: 'Done'; notes?: string; completionDate: Timestamp } = {
+      status: 'Done',
+      completionDate: Timestamp.now(),
     };
     if (note) {
       updateData.notes = note;
@@ -2198,8 +2235,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showReminderPopup,
     pendingRemindersForPopup,
     closeReminderPopup: () => {
-        setShowReminderPopup(false);
-        setPendingRemindersForPopup([]);
+      setShowReminderPopup(false);
+      setPendingRemindersForPopup([]);
     },
     markActivitiesAsSeen,
     isMobileNumberDuplicate,

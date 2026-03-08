@@ -73,6 +73,8 @@ export const activitySchema = z.object({
     description: z.string(),
     timestamp: timestampSchema,
     createdBy: z.string(),
+    source: z.enum(['UI', 'BOT']),
+    groupName: z.string().optional(),
 });
 
 export const reminderSchema = z.object({

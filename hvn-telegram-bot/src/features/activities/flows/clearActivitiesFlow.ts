@@ -31,7 +31,9 @@ export async function handleClearActivities(bot: TelegramBot, callbackQuery: Tel
                 employeeName: 'System',
                 action: 'CLEAR_LOGS',
                 description: 'All activity logs were cleared',
-                createdBy: creator
+                createdBy: creator,
+                source: 'BOT',
+                groupName: 'ACTIVITY'
             }, true);
         } catch (error: any) {
             await bot.sendMessage(chatId, `❌ Error clearing activities: ${error.message}`);

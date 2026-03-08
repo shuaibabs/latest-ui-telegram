@@ -205,3 +205,63 @@
 20260308:014326.073: INFO: Bot has been initialized.
 20260308:014326.074: INFO: Bot is now running.
 20260308:014326.083: INFO: Server is now running.
+20260308:211900.584: INFO: Firebase Admin SDK initialized successfully.
+20260308:211901.025: INFO: Starting the Telegram bot...
+20260308:211901.028: INFO: Bot has been initialized.
+20260308:211901.029: INFO: Starting the Telegram Server...
+20260308:211901.029: INFO: Bot is now running.
+20260308:211901.032: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:211901.033: INFO: Server is now running.
+20260308:214729.758: INFO: Firebase Admin SDK initialized successfully.
+20260308:214730.135: INFO: Bot has been initialized.
+20260308:214730.132: INFO: Starting the Telegram bot...
+20260308:214730.135: INFO: Bot is now running.
+20260308:214730.135: INFO: Starting the Telegram Server...
+20260308:214730.139: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:214730.140: INFO: Server is now running.
+20260308:214813.919: INFO: Firebase Admin SDK initialized successfully.
+20260308:214814.295: INFO: Starting the Telegram bot...
+20260308:214814.298: INFO: Bot has been initialized.
+20260308:214814.299: INFO: Starting the Telegram Server...
+20260308:214814.299: INFO: Bot is now running.
+20260308:214814.303: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:214814.303: INFO: Server is now running.
+20260308:215414.024: INFO: User trionexdigital@gmail.com deleted from Firebase Auth.
+20260308:215414.444: INFO: User document 6sabspwA7oQ2xEDrhCjUuXiC2L33 deleted from Firestore.
+20260308:215416.065: INFO: 📡 Broadcast completed: ["Sent to Group: -5267103056","Mirrored to Master Channel: -1003692219115"]
+20260308:215833.704: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260308:215836.459: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_delete
+20260308:215840.375: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_select_6PTS18d5fzZKGzgmAl8clK32WC73
+20260308:215844.047: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: delete_user_confirm_yes
+20260308:215846.399: INFO: User trionexdigital@gmail.com deleted from Firebase Auth.
+20260308:215846.856: INFO: User document 6PTS18d5fzZKGzgmAl8clK32WC73 deleted from Firestore.
+20260308:215906.715: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_add
+20260308:215918.064: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: Trionex Digital
+20260308:215929.087: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: trionexdigital@gmail.com
+20260308:215935.809: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: create_user_role_employee
+20260308:215945.654: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: trionex_digital
+20260308:215952.894: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: Trionex@1234
+20260308:215956.771: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: create_user_confirm_yes
+20260308:220000.319: INFO: Firebase Auth user created for trionexdigital@gmail.com with UID: Tum71bdidON0MBKTix6tNfrdkWy1
+20260308:220000.714: INFO: User Trionex Digital saved to Firestore.
+20260308:221204.318: INFO: Firebase Admin SDK initialized successfully.
+20260308:221204.698: INFO: Starting the Telegram bot...
+20260308:221204.700: INFO: Bot has been initialized.
+20260308:221204.701: INFO: Bot is now running.
+20260308:221204.701: INFO: Starting the Telegram Server...
+20260308:221204.705: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:221204.705: INFO: Server is now running.
+20260308:221256.667: INFO: Firebase Admin SDK initialized successfully.
+20260308:221257.102: INFO: Starting the Telegram bot...
+20260308:221257.105: INFO: Bot has been initialized.
+20260308:221257.106: INFO: Bot is now running.
+20260308:221257.106: INFO: Starting the Telegram Server...
+20260308:221257.112: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:221257.113: INFO: Server is now running.
+20260308:221847.307: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]
+20260308:222014.667: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260308:222018.794: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_edit
+20260308:222026.028: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: edit_user_select_Tum71bdidON0MBKTix6tNfrdkWy1
+20260308:222030.071: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: edit_user_field_name
+20260308:222038.698: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: Trionex
+20260308:222503.590: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]

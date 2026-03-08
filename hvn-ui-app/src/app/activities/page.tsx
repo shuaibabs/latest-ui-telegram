@@ -135,6 +135,7 @@ export default function ActivitiesPage() {
               <TableHead>Sr.No</TableHead>
               <TableHead>Employee Name</TableHead>
               <TableHead>Action</TableHead>
+              <TableHead>Source</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Time</TableHead>
             </TableRow>
@@ -157,6 +158,7 @@ export default function ActivitiesPage() {
                     <TableCell>{activity.srNo}</TableCell>
                     <TableCell className="font-medium">{activity.employeeName}</TableCell>
                     <TableCell>{activity.action}</TableCell>
+                    <TableCell>{activity.source}</TableCell>
                     <TableCell>{activity.description}</TableCell>
                     <TableCell>{activity.timestamp ? format(activity.timestamp.toDate(), 'PPpp') : 'Syncing...'}</TableCell>
                 </TableRow>
