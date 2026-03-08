@@ -6,6 +6,7 @@ import { CommandRouter } from '../router/commandRouter';
 import { registerGeneralCommands } from '../../commands/general';
 import { registerUsersFeature } from '../../features/users';
 import { registerActivitiesFeature } from '../../features/activities';
+import { registerInventoryFeature } from '../../features/inventory';
 
 let bot: TelegramBot | null = null;
 let commandRouter: CommandRouter | null = null;
@@ -21,6 +22,7 @@ export function initializeBot(): TelegramBot {
         registerGeneralCommands(commandRouter);
         registerUsersFeature(commandRouter);
         registerActivitiesFeature(commandRouter);
+        registerInventoryFeature(commandRouter);
 
         // Start listening for commands
         commandRouter.listen();

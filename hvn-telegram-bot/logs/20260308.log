@@ -265,3 +265,92 @@
 20260308:222030.071: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: edit_user_field_name
 20260308:222038.698: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: Trionex
 20260308:222503.590: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]
+20260308:223024.171: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]
+20260308:223508.333: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]
+20260308:225432.508: INFO: Firebase Admin SDK initialized successfully.
+20260308:225432.934: INFO: Starting the Telegram bot...
+20260308:225432.938: INFO: Bot is now running.
+20260308:225432.938: INFO: Starting the Telegram Server...
+20260308:225432.937: INFO: Bot has been initialized.
+20260308:225432.942: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:225432.943: INFO: Server is now running.
+20260308:234333.772: INFO: Starting the Telegram bot...
+20260308:234333.774: INFO: Bot has been initialized.
+20260308:234333.393: INFO: Firebase Admin SDK initialized successfully.
+20260308:234333.775: INFO: Bot is now running.
+20260308:234333.775: INFO: Starting the Telegram Server...
+20260308:234333.779: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:234333.779: INFO: Server is now running.
+20260308:234344.594: INFO: Firebase Admin SDK initialized successfully.
+20260308:234344.987: INFO: Starting the Telegram bot...
+20260308:234344.990: INFO: Bot has been initialized.
+20260308:234344.990: INFO: Bot is now running.
+20260308:234344.990: INFO: Starting the Telegram Server...
+20260308:234344.995: INFO: Server is now running.
+20260308:234344.995: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:234435.733: INFO: Firebase Admin SDK initialized successfully.
+20260308:234436.117: INFO: Starting the Telegram bot...
+20260308:234436.119: INFO: Bot has been initialized.
+20260308:234436.120: INFO: Bot is now running.
+20260308:234436.120: INFO: Starting the Telegram Server...
+20260308:234436.124: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:234436.124: INFO: Server is now running.
+20260308:234443.319: INFO: Firebase Admin SDK initialized successfully.
+20260308:234443.738: INFO: Starting the Telegram bot...
+20260308:234443.741: INFO: Bot is now running.
+20260308:234443.741: INFO: Bot has been initialized.
+20260308:234443.741: INFO: Starting the Telegram Server...
+20260308:234443.745: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:234443.745: INFO: Server is now running.
+20260308:234530.737: INFO: Firebase Admin SDK initialized successfully.
+20260308:234531.155: INFO: Bot has been initialized.
+20260308:234531.152: INFO: Starting the Telegram bot...
+20260308:234531.155: INFO: Starting the Telegram Server...
+20260308:234531.155: INFO: Bot is now running.
+20260308:234531.160: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260308:234531.160: INFO: Server is now running.
+20260308:234637.664: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_start
+20260308:234648.018: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260308:234715.430: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inventory_add_number
+20260308:234751.469: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 5060708090, 1020304050, 6020104050
+20260308:234759.822: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_type_Prepaid
+20260308:234811.363: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: telegram vendor
+20260308:234827.198: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 2026-03-08
+20260308:234832.171: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 500
+20260308:234836.762: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 1000
+20260308:234840.339: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_owner_Individual
+20260308:234842.761: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_rtp_RTP
+20260308:234845.796: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_upload_Pending
+20260308:234904.222: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: telegram prepaid new location
+20260308:234907.552: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_loctype_Store
+20260308:234917.472: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_assign_Tum71bdidON0MBKTix6tNfrdkWy1
+20260308:234930.390: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_final_confirm
+20260308:235536.677: INFO: [CALLBACK] From: Trionex Digital (@trionex_digital) [ID: 8556471471] | Data: add_num_type_Prepaid
+20260308:235610.662: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260308:235613.946: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inventory_add_number
+20260308:235627.926: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 1122112211, 1122332211
+20260308:235629.675: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_type_Postpaid
+20260308:235645.938: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 2026-08-23
+20260308:235653.902: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_pdbill_Yes
+20260308:235718.500: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: telegram vendor postpaid testing
+20260308:235734.886: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 2026-03-08
+20260308:235738.438: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 4000
+20260308:235742.471: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 6000
+20260308:235747.903: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_owner_Partnership
+20260308:235756.358: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: telegram partner
+20260308:235758.641: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_rtp_Non-RTP
+20260308:235814.878: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 2026-03-09
+20260308:235817.474: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_upload_Done
+20260308:235827.102: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: telegram postpaid
+20260308:235828.862: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_loctype_Employee
+20260308:235832.836: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_assign_Unassigned
+20260308:235835.669: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_final_confirm
+20260308:235850.695: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /start
+20260308:235852.780: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inventory_add_number
+20260308:235859.577: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 1122331122
+20260308:235901.824: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_type_COCP
+20260308:235913.531: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: telegram accoun cocp
+20260308:235931.598: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 2026-03-08
+20260308:235945.139: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: telegram vendor cocp
+20260308:235954.957: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 2026-03-08
+20260308:235958.792: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 500
