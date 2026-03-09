@@ -13,9 +13,9 @@ import { errorEmitter } from '@/firebase/error-emitter';
 type AuthContextType = {
   user: FirebaseUser | null;
   role: 'admin' | 'employee' | null;
+  profile: User | null;
   loading: boolean;
 };
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const db = useFirestore();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [role, setRole] = useState<'admin' | 'employee' | null>(null);
+  const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -31,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       return;
     }
-    
+
     let userDocUnsubscribe: (() => void) | undefined;
 
     const authStateUnsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -41,15 +42,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        
+
         userDocUnsubscribe = onSnapshot(userDocRef, async (docSnap) => {
           const isLoggingIn = !user && firebaseUser;
 
           if (docSnap.exists()) {
+            const userData = docSnap.data() as User;
             setUser(firebaseUser);
-            setRole(docSnap.data().role);
+            setRole(userData.role);
+            setProfile(userData);
             if (isLoggingIn) {
-               toast({
+              toast({
                 title: "Logged In Successfully",
                 description: `Welcome back, ${firebaseUser.displayName || firebaseUser.email}!`,
               });
@@ -60,25 +63,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const usersCollection = collection(db, "users");
             const usersSnap = await getDocs(usersCollection);
             if (usersSnap.empty) {
-                // First user ever. Create admin doc.
-                 const newRole = 'admin';
-                 const newUser: User = {
-                     uid: firebaseUser.uid,
-                     id: firebaseUser.uid,
-                     email: firebaseUser.email || '',
-                     displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
-                     role: newRole,
-                 };
-                 try {
-                     await setDoc(userDocRef, newUser);
-                     // The onSnapshot will fire again with the new doc, setting the user and role.
-                 } catch (e) {
-                      console.error("Failed to create first admin user doc:", e);
-                      signOut(auth);
-                 }
-            } else {
-                // Not the first user, and their doc is missing. Sign them out.
+              // First user ever. Create admin doc.
+              const newRole = 'admin';
+              const newUser: User = {
+                uid: firebaseUser.uid,
+                id: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
+                role: newRole,
+              };
+              try {
+                await setDoc(userDocRef, newUser);
+                // The onSnapshot will fire again with the new doc, setting the user and role.
+              } catch (e) {
+                console.error("Failed to create first admin user doc:", e);
                 signOut(auth);
+              }
+            } else {
+              // Not the first user, and their doc is missing. Sign them out.
+              signOut(auth);
             }
           }
         }, (error) => {
@@ -91,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // User is logged out.
         setUser(null);
         setRole(null);
+        setProfile(null);
         setLoading(false);
       }
     });
@@ -101,11 +105,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userDocUnsubscribe();
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth, db]);
 
   return (
-    <AuthContext.Provider value={{ user, role, loading }}>
+    <AuthContext.Provider value={{ user, role, profile, loading }}>
       {children}
     </AuthContext.Provider>
   );

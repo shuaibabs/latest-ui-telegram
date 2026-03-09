@@ -167,7 +167,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const { user, role, loading: authLoading } = useAuth();
+  const { user, role, profile, loading: authLoading } = useAuth();
   const db = useFirestore();
 
   const [numbers, setNumbers] = useState<NumberRecord[]>([]);
@@ -393,6 +393,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     collectionMappings.forEach(({ name, setter, loader }) => {
       const collectionRef = collection(db, name);
       const q = query(collectionRef);
+
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const data = mapSnapshotToData(querySnapshot);
         setter(data as any);
@@ -411,42 +412,46 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       subscriptions.forEach(sub => sub());
     };
-  }, [db, user, role]);
+  }, [db, user, role, profile]);
 
-  useEffect(() => {
-    if (loading || !user) return;
+  const filteredNumbers = useMemo(() => {
+    if (role === 'admin') return numbers;
+    return numbers.filter(n => n.assignedTo === profile?.displayName);
+  }, [numbers, role, profile]);
 
-    if (role === 'admin') {
-      setRoleFilteredActivities(activities);
-    } else {
-      const filtered = activities.filter(
-        (activity) => activity.employeeName === user.displayName
-      );
-      setRoleFilteredActivities(filtered);
-    }
-  }, [activities, role, user, loading]);
+  const filteredSales = useMemo(() => {
+    if (role === 'admin') return sales;
+    return sales.filter(s => s.originalNumberData?.assignedTo === profile?.displayName);
+  }, [sales, role, profile]);
 
-  // Effect to derive vendors list
-  useEffect(() => {
-    const defaultVendors = [
-      "lifetimenumber",
-      "vipnumberstore",
-      "vipnumbershop",
-      "numberwale",
-      "numberspoint",
-      "vipfancynumber",
-      "numberatm",
-      "numbersolution"
-    ];
-    const allSalesVendors = sales.map(s => s.soldTo).filter(Boolean);
-    const uniqueVendors = [...new Set([...defaultVendors, ...allSalesVendors])];
-    setVendors(uniqueVendors.sort());
-  }, [sales]);
+  const filteredPreBookings = useMemo(() => {
+    if (role === 'admin') return preBookings;
+    return preBookings.filter(p => p.originalNumberData?.assignedTo === profile?.displayName);
+  }, [preBookings, role, profile]);
 
+  const filteredDeletedNumbers = useMemo(() => {
+    if (role === 'admin') return deletedNumbers;
+    return deletedNumbers.filter(d => d.originalNumberData?.assignedTo === profile?.displayName);
+  }, [deletedNumbers, role, profile]);
+
+  const filteredDealerPurchases = useMemo(() => {
+    return dealerPurchases;
+  }, [dealerPurchases]);
+
+  const filteredReminders = useMemo(() => {
+    if (role === 'admin') return reminders;
+    return (reminders || []).filter(r => Array.isArray(r.assignedTo) && r.assignedTo.includes(profile?.displayName || ''));
+  }, [reminders, role, profile]);
+
+  const filteredActivities = useMemo(() => {
+    return activities;
+  }, [activities]);
+
+  // Derive globalHistory from filtered data to ensure consistent visibility
   const globalHistory = useMemo<GlobalHistoryRecord[]>(() => {
     if (loading) return [];
 
-    const inventoryHistory: GlobalHistoryRecord[] = numbers.map(num => ({
+    const inventoryHistory: GlobalHistoryRecord[] = filteredNumbers.map(num => ({
       id: `numbers-${num.id}`,
       mobile: num.mobile,
       rtpStatus: num.status,
@@ -506,7 +511,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     }));
 
-    const deletedHistory: GlobalHistoryRecord[] = deletedNumbers.map(dn => ({
+    const deletedHistory: GlobalHistoryRecord[] = filteredDeletedNumbers.map(dn => ({
       id: `deleted-${dn.id}`,
       mobile: dn.mobile,
       rtpStatus: dn.originalNumberData.status,
@@ -527,7 +532,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
     return [...inventoryHistory, ...salesHistory, ...preBookingHistory, ...dealerPurchaseHistory, ...deletedHistory];
-  }, [loading, numbers, sales, preBookings, dealerPurchases, deletedNumbers]);
+  }, [loading, filteredNumbers, filteredSales, filteredPreBookings, filteredDealerPurchases, filteredDeletedNumbers]);
 
   const isMobileNumberDuplicate = (mobile: string, currentId?: string): boolean => {
     if (!mobile) return false;
@@ -2210,26 +2215,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Filter data based on role
-  const roleFilteredNumbers = role === 'admin' ? numbers : (numbers || []).filter(n => n.assignedTo === user?.displayName);
-  const roleFilteredReminders = role === 'admin' ? reminders : (reminders || []).filter(r => Array.isArray(r.assignedTo) && r.assignedTo.includes(user?.displayName || ''));
-  const roleFilteredPreBookings = role === 'admin' ? preBookings : (preBookings || []).filter(pb => pb.originalNumberData?.assignedTo === user?.displayName);
+  // Filtered data is already prepared via useMemo hooks above
 
 
   const value: AppContextType = {
     loading,
-    numbers: roleFilteredNumbers,
-    sales,
-    reminders: roleFilteredReminders,
-    activities: roleFilteredActivities,
+    numbers: filteredNumbers,
+    sales: filteredSales,
+    reminders: filteredReminders,
+    activities: filteredActivities,
     users,
     employees,
     vendors,
     dealerPurchases,
-    preBookings: roleFilteredPreBookings,
+    preBookings: filteredPreBookings,
     payments,
     globalHistory,
-    deletedNumbers,
+    deletedNumbers: filteredDeletedNumbers,
     seenActivitiesCount,
     recentlyAutoRtpIds,
     showReminderPopup,

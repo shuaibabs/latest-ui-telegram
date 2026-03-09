@@ -27,7 +27,6 @@ import { EditUploadStatusModal } from '@/components/edit-upload-status-modal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { BulkSellNumberModal } from '@/components/bulk-sell-modal';
 import { useNavigation } from '@/context/navigation-context';
-import { usePathname } from 'next/navigation';
 import { EditLocationModal } from '@/components/edit-location-modal';
 import { BulkEditUploadStatusModal } from '@/components/bulk-edit-upload-status-modal';
 import { BulkDeleteNumbersModal } from '@/components/bulk-delete-numbers-modal';
@@ -40,16 +39,16 @@ import { Textarea } from '@/components/ui/textarea';
 type SortableColumn = keyof NumberRecord | 'id' | 'twoDigitSum';
 
 const initialAdvancedSearchState: AdvancedSearchState = {
-    startWith: '',
-    anywhere: '',
-    endWith: '',
-    mustContain: '',
-    notContain: '',
-    onlyContain: '',
-    total: '',
-    sum: '',
-    maxContain: '',
-    mostContains: false,
+  startWith: '',
+  anywhere: '',
+  endWith: '',
+  mustContain: '',
+  notContain: '',
+  onlyContain: '',
+  total: '',
+  sum: '',
+  maxContain: '',
+  mostContains: false,
 };
 
 
@@ -57,7 +56,6 @@ export default function AllNumbersPage() {
   const { numbers, loading, isMobileNumberDuplicate, deleteNumbers, markAsPreBooked, recentlyAutoRtpIds } = useApp();
   const { role } = useAuth();
   const { navigate } = useNavigation();
-  const pathname = usePathname();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -75,10 +73,10 @@ export default function AllNumbersPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [sortConfig, setSortConfig] = useState<{ key: SortableColumn; direction: 'ascending' | 'descending' } | null>({ key: 'srNo', direction: 'ascending'});
+  const [sortConfig, setSortConfig] = useState<{ key: SortableColumn; direction: 'ascending' | 'descending' } | null>({ key: 'srNo', direction: 'ascending' });
   const [isPreBookConfirmationOpen, setIsPreBookConfirmationOpen] = useState(false);
   const [advancedSearch, setAdvancedSearch] = useState<AdvancedSearchState>(initialAdvancedSearchState);
-  
+
   const [rowsToDelete, setRowsToDelete] = useState<string[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
@@ -87,73 +85,73 @@ export default function AllNumbersPage() {
 
   const calculateSimpleSum = (mobile: string): number => {
     return mobile
-        .split('')
-        .map(Number)
-        .reduce((acc, digit) => acc + digit, 0);
+      .split('')
+      .map(Number)
+      .reduce((acc, digit) => acc + digit, 0);
   };
 
   const sortedAndFilteredNumbers = useMemo(() => {
     let sortableItems = [...numbers]
-      .filter(num => 
+      .filter(num =>
         (statusFilter === 'all' || num.status === statusFilter) &&
         (typeFilter === 'all' || num.numberType === typeFilter)
       )
-      .filter(num => 
+      .filter(num =>
         num.mobile && num.mobile.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      
+
     // Advanced search filtering
     if (Object.values(advancedSearch).some(v => v)) {
-        sortableItems = sortableItems.filter(num => {
-            const { startWith, endWith, anywhere, mustContain, notContain, onlyContain, total, sum, maxContain } = advancedSearch;
+      sortableItems = sortableItems.filter(num => {
+        const { startWith, endWith, anywhere, mustContain, notContain, onlyContain, total, sum, maxContain } = advancedSearch;
 
-            if (startWith && !num.mobile.startsWith(startWith)) return false;
-            if (endWith && !num.mobile.endsWith(endWith)) return false;
-            if (anywhere && !num.mobile.includes(anywhere)) return false;
+        if (startWith && !num.mobile.startsWith(startWith)) return false;
+        if (endWith && !num.mobile.endsWith(endWith)) return false;
+        if (anywhere && !num.mobile.includes(anywhere)) return false;
 
-            if (mustContain) {
-                const mustContainDigits = mustContain.split(',').map(d => d.trim()).filter(Boolean);
-                if (!mustContainDigits.every(digit => num.mobile.includes(digit))) return false;
-            }
+        if (mustContain) {
+          const mustContainDigits = mustContain.split(',').map(d => d.trim()).filter(Boolean);
+          if (!mustContainDigits.every(digit => num.mobile.includes(digit))) return false;
+        }
 
-            if (notContain) {
-                const notContainDigits = notContain.split(',').map(d => d.trim()).filter(Boolean);
-                if (notContainDigits.some(digit => num.mobile.includes(digit))) return false;
-            }
+        if (notContain) {
+          const notContainDigits = notContain.split(',').map(d => d.trim()).filter(Boolean);
+          if (notContainDigits.some(digit => num.mobile.includes(digit))) return false;
+        }
 
-            if (onlyContain) {
-                const allowedDigits = new Set(onlyContain.split(''));
-                if (!num.mobile.split('').every(digit => allowedDigits.has(digit))) {
-                    return false;
-                }
-            }
+        if (onlyContain) {
+          const allowedDigits = new Set(onlyContain.split(''));
+          if (!num.mobile.split('').every(digit => allowedDigits.has(digit))) {
+            return false;
+          }
+        }
 
-            if (total) {
-                const digitSum = num.mobile.split('').reduce((acc, digit) => acc + parseInt(digit, 10), 0);
-                if (digitSum.toString() !== total) return false;
-            }
-            
-            if (sum && num.sum.toString() !== sum) return false;
+        if (total) {
+          const digitSum = num.mobile.split('').reduce((acc, digit) => acc + parseInt(digit, 10), 0);
+          if (digitSum.toString() !== total) return false;
+        }
 
-            if (maxContain) {
-                const digitCounts = num.mobile.split('').reduce((acc, digit) => {
-                    acc[digit] = (acc[digit] || 0) + 1;
-                    return acc;
-                }, {} as Record<string, number>);
-                if (Math.max(...Object.values(digitCounts)) > parseInt(maxContain, 10)) return false;
-            }
+        if (sum && num.sum.toString() !== sum) return false;
 
-            return true;
-        });
+        if (maxContain) {
+          const digitCounts = num.mobile.split('').reduce((acc, digit) => {
+            acc[digit] = (acc[digit] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+          if (Math.max(...Object.values(digitCounts)) > parseInt(maxContain, 10)) return false;
+        }
+
+        return true;
+      });
     }
 
     // Prioritize recently auto-RTP'd numbers
     sortableItems.sort((a, b) => {
-        const aIsRecent = recentlyAutoRtpIds.includes(a.id);
-        const bIsRecent = recentlyAutoRtpIds.includes(b.id);
-        if (aIsRecent && !bIsRecent) return -1;
-        if (!aIsRecent && bIsRecent) return 1;
-        return 0;
+      const aIsRecent = recentlyAutoRtpIds.includes(a.id);
+      const bIsRecent = recentlyAutoRtpIds.includes(b.id);
+      if (aIsRecent && !bIsRecent) return -1;
+      if (!aIsRecent && bIsRecent) return 1;
+      return 0;
     });
 
     if (sortConfig !== null) {
@@ -163,28 +161,28 @@ export default function AllNumbersPage() {
         const bIsRecent = recentlyAutoRtpIds.includes(b.id);
         if (aIsRecent && !bIsRecent) return -1;
         if (!aIsRecent && bIsRecent) return 1;
-        
+
         const aValue = sortConfig.key === 'twoDigitSum' ? calculateSimpleSum(a.mobile) : a[sortConfig.key as keyof NumberRecord];
         const bValue = sortConfig.key === 'twoDigitSum' ? calculateSimpleSum(b.mobile) : b[sortConfig.key as keyof NumberRecord];
 
 
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
-        
+
         let comparison = 0;
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-            comparison = aValue.localeCompare(bValue);
+          comparison = aValue.localeCompare(bValue);
         } else if (aValue instanceof Date && bValue instanceof Date) {
-            comparison = aValue.getTime() - bValue.getTime();
+          comparison = aValue.getTime() - bValue.getTime();
         } else if (aValue instanceof Timestamp && bValue instanceof Timestamp) {
-            comparison = aValue.toMillis() - bValue.toMillis();
+          comparison = aValue.toMillis() - bValue.toMillis();
         } else {
-             if (aValue < bValue) {
-                comparison = -1;
-            }
-            if (aValue > bValue) {
-                comparison = 1;
-            }
+          if (aValue < bValue) {
+            comparison = -1;
+          }
+          if (aValue > bValue) {
+            comparison = 1;
+          }
         }
 
         return sortConfig.direction === 'ascending' ? comparison : -comparison;
@@ -208,7 +206,7 @@ export default function AllNumbersPage() {
     setSortConfig({ key, direction });
     setCurrentPage(1);
   };
-  
+
   const getSortIcon = (columnKey: SortableColumn) => {
     if (!sortConfig || sortConfig.key !== columnKey) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />;
@@ -224,7 +222,7 @@ export default function AllNumbersPage() {
     setSelectedNumber(number);
     setIsRtpModalOpen(true);
   };
-  
+
   const handleEditUpload = (number: NumberRecord) => {
     setSelectedNumber(number);
     setIsUploadModalOpen(true);
@@ -234,7 +232,7 @@ export default function AllNumbersPage() {
     setSelectedNumber(number);
     setIsSellModalOpen(true);
   };
-  
+
   const handleEditLocation = (number: NumberRecord) => {
     setSelectedRows([number.id]);
     setIsLocationModalOpen(true);
@@ -243,14 +241,14 @@ export default function AllNumbersPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-  
+
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
 
   const handleSelectRow = (id: string) => {
-    setSelectedRows(prev => 
+    setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
     );
   };
@@ -269,7 +267,7 @@ export default function AllNumbersPage() {
   const handleOpenAssignModal = () => {
     setIsAssignModalOpen(true);
   }
-  
+
   const closeAssignModal = () => {
     setIsAssignModalOpen(false);
     setSelectedRows([]);
@@ -309,8 +307,8 @@ export default function AllNumbersPage() {
 
   const handleConfirmDelete = () => {
     if (!deleteReason.trim()) {
-        setDeleteReasonError('A reason for deletion is required.');
-        return;
+      setDeleteReasonError('A reason for deletion is required.');
+      return;
     }
     deleteNumbers(rowsToDelete, deleteReason);
     setSelectedRows(prev => prev.filter(id => !rowsToDelete.includes(id)));
@@ -330,9 +328,9 @@ export default function AllNumbersPage() {
     }
 
     const textToCopy = selectedNumberRecords.map(num => {
-        const twoDigitSum = calculateSimpleSum(num.mobile);
-        const rtpDate = num.rtpDate ? format(num.rtpDate.toDate(), 'yyyy-MM-dd') : 'N/A';
-        return [num.mobile, num.sum, twoDigitSum, num.status, rtpDate].join(',\t');
+      const twoDigitSum = calculateSimpleSum(num.mobile);
+      const rtpDate = num.rtpDate ? format(num.rtpDate.toDate(), 'yyyy-MM-dd') : 'N/A';
+      return [num.mobile, num.sum, twoDigitSum, num.status, rtpDate].join(',\t');
     }).join('\n');
 
     navigator.clipboard.writeText(textToCopy).then(() => {
@@ -352,10 +350,10 @@ export default function AllNumbersPage() {
 
   const SortableHeader = ({ column, label }: { column: SortableColumn, label: string }) => (
     <TableHead>
-        <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
-            {label}
-            {getSortIcon(column)}
-        </Button>
+      <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
+        {label}
+        {getSortIcon(column)}
+      </Button>
     </TableHead>
   );
 
@@ -397,7 +395,7 @@ export default function AllNumbersPage() {
       });
       return;
     }
-    navigate(`/numbers/new?mobile=${trimmedSearch}`, pathname);
+    navigate(`/numbers/new?mobile=${trimmedSearch}`);
   };
 
   const handlePreBook = (number: NumberRecord) => {
@@ -417,7 +415,7 @@ export default function AllNumbersPage() {
     if (target.closest('[role="checkbox"]') || target.closest('[data-radix-dropdown-menu-trigger]')) {
       return;
     }
-    navigate(`/numbers/${numId}`, pathname);
+    navigate(`/numbers/${numId}`);
   };
 
   return (
@@ -427,24 +425,24 @@ export default function AllNumbersPage() {
         description="Search, filter, and manage all numbers in the system."
       >
         <div className="flex flex-col sm:flex-row items-center gap-2">
-            <Button onClick={() => navigate('/numbers/new', pathname)} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4"/>
-                New Number
+          <Button onClick={() => navigate('/numbers/new')} className="w-full sm:w-auto">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Number
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/import-export')} className="w-full sm:w-auto">
+            <FileInput className="mr-2 h-4 w-4" />
+            Import / Export
+          </Button>
+          <Button variant="outline" onClick={() => setIsBulkUploadStatusChangeModalOpen(true)} className="w-full sm:w-auto">
+            <UploadCloud className="mr-2 h-4 w-4" />
+            Bulk Upload Status
+          </Button>
+          {role === 'admin' && (
+            <Button variant="destructive" onClick={() => setIsBulkDeleteModalOpen(true)} className="w-full sm:w-auto">
+              <Trash className="mr-2 h-4 w-4" />
+              Bulk Delete
             </Button>
-             <Button variant="outline" onClick={() => navigate('/import-export', pathname)} className="w-full sm:w-auto">
-                <FileInput className="mr-2 h-4 w-4"/>
-                Import / Export
-            </Button>
-            <Button variant="outline" onClick={() => setIsBulkUploadStatusChangeModalOpen(true)} className="w-full sm:w-auto">
-                <UploadCloud className="mr-2 h-4 w-4"/>
-                Bulk Upload Status
-            </Button>
-            {role === 'admin' && (
-              <Button variant="destructive" onClick={() => setIsBulkDeleteModalOpen(true)} className="w-full sm:w-auto">
-                  <Trash className="mr-2 h-4 w-4"/>
-                  Bulk Delete
-              </Button>
-            )}
+          )}
         </div>
       </PageHeader>
       <AdvancedSearch
@@ -455,7 +453,7 @@ export default function AllNumbersPage() {
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4 flex-wrap w-full">
-            <Input 
+            <Input
               placeholder="Search by mobile number..."
               value={searchTerm}
               onChange={(e) => {
@@ -491,13 +489,13 @@ export default function AllNumbersPage() {
                 <SelectItem value="COCP">COCP</SelectItem>
               </SelectContent>
             </Select>
-             <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+            <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
               <SelectTrigger className="w-full sm:w-[120px]">
                 <SelectValue placeholder="Items per page" />
               </SelectTrigger>
               <SelectContent>
                 {[10, 25, 50, 100, 250, 500, 1000, 5000].map(val => (
-                   <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
+                  <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -505,41 +503,41 @@ export default function AllNumbersPage() {
         </div>
         {selectedRows.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
-              {role === 'admin' && (
-                <Button variant="destructive" onClick={() => openDeleteModal(selectedRows)}>
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete ({selectedRows.length})
-                </Button>
-              )}
-              {role === 'admin' && (
-                  <Button onClick={handleOpenAssignModal}>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Assign ({selectedRows.length})
-                  </Button>
-              )}
-              <Button onClick={handleCopySelected} variant="outline">
-                <Copy className="mr-2 h-4 w-4" />
-                Copy ({selectedRows.length})
+            {role === 'admin' && (
+              <Button variant="destructive" onClick={() => openDeleteModal(selectedRows)}>
+                <Trash className="mr-2 h-4 w-4" />
+                Delete ({selectedRows.length})
               </Button>
-              <Button onClick={() => setIsBulkUploadModalOpen(true)} variant="outline">
-                  <UploadCloud className="mr-2 h-4 w-4" />
-                  Edit Upload Status ({selectedRows.length})
+            )}
+            {role === 'admin' && (
+              <Button onClick={handleOpenAssignModal}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Assign ({selectedRows.length})
               </Button>
-              <Button onClick={() => setIsPreBookConfirmationOpen(true)} variant="outline">
-                  <Bookmark className="mr-2 h-4 w-4" />
-                  Pre-Book ({selectedRows.length})
-              </Button>
-              <Button onClick={handleOpenBulkSellModal} className="bg-green-600 hover:bg-green-700 text-white">
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  Sell ({selectedRows.length})
-              </Button>
+            )}
+            <Button onClick={handleCopySelected} variant="outline">
+              <Copy className="mr-2 h-4 w-4" />
+              Copy ({selectedRows.length})
+            </Button>
+            <Button onClick={() => setIsBulkUploadModalOpen(true)} variant="outline">
+              <UploadCloud className="mr-2 h-4 w-4" />
+              Edit Upload Status ({selectedRows.length})
+            </Button>
+            <Button onClick={() => setIsPreBookConfirmationOpen(true)} variant="outline">
+              <Bookmark className="mr-2 h-4 w-4" />
+              Pre-Book ({selectedRows.length})
+            </Button>
+            <Button onClick={handleOpenBulkSellModal} className="bg-green-600 hover:bg-green-700 text-white">
+              <DollarSign className="mr-2 h-4 w-4" />
+              Sell ({selectedRows.length})
+            </Button>
           </div>
         )}
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
-                 <TableHead className="w-12">
+                <TableHead className="w-12">
                   <Checkbox
                     checked={isAllOnPageSelected}
                     onCheckedChange={handleSelectAllOnPage}
@@ -566,29 +564,29 @@ export default function AllNumbersPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                  <TableSpinner colSpan={17} />
+                <TableSpinner colSpan={17} />
               ) : paginatedNumbers.length > 0 ? (
-                  paginatedNumbers.map((num) => (
-                    <TableRow 
-                        key={num.id}
-                        data-state={selectedRows.includes(num.id) && "selected"}
-                        className={cn(
-                            "cursor-pointer",
-                            recentlyAutoRtpIds.includes(num.id) && "bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-100/80 dark:hover:bg-amber-900/40 data-[state=selected]:bg-amber-200 dark:data-[state=selected]:bg-amber-900/50"
-                        )}
-                        onClick={(e) => handleRowClick(e, num.id)}
-                    >
+                paginatedNumbers.map((num) => (
+                  <TableRow
+                    key={num.id}
+                    data-state={selectedRows.includes(num.id) && "selected"}
+                    className={cn(
+                      "cursor-pointer",
+                      recentlyAutoRtpIds.includes(num.id) && "bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-100/80 dark:hover:bg-amber-900/40 data-[state=selected]:bg-amber-200 dark:data-[state=selected]:bg-amber-900/50"
+                    )}
+                    onClick={(e) => handleRowClick(e, num.id)}
+                  >
                     <TableCell>
-                        {num.id && (
+                      {num.id && (
                         <Checkbox
-                            checked={selectedRows.includes(num.id)}
-                            onCheckedChange={() => handleSelectRow(num.id)}
-                            aria-label="Select row"
+                          checked={selectedRows.includes(num.id)}
+                          onCheckedChange={() => handleSelectRow(num.id)}
+                          aria-label="Select row"
                         />
-                        )}
+                      )}
                     </TableCell>
                     <TableCell>
-                        {num.srNo}
+                      {num.srNo}
                     </TableCell>
                     <TableCell className="font-medium">{highlightMatch(num.mobile, searchTerm)}</TableCell>
                     <TableCell>{num.sum}</TableCell>
@@ -598,29 +596,29 @@ export default function AllNumbersPage() {
                     <TableCell>{num.ownershipType}</TableCell>
                     <TableCell>{num.partnerName || 'N/A'}</TableCell>
                     <TableCell>
-                        <Badge variant={num.uploadStatus === 'Done' ? 'secondary' : 'outline'}>
-                            {num.uploadStatus}
-                        </Badge>
+                      <Badge variant={num.uploadStatus === 'Done' ? 'secondary' : 'outline'}>
+                        {num.uploadStatus}
+                      </Badge>
                     </TableCell>
                     <TableCell>{num.assignedTo}</TableCell>
                     <TableCell>{num.locationType}</TableCell>
                     <TableCell>{num.currentLocation}</TableCell>
                     <TableCell>
-                        <Badge variant={num.status === 'RTP' ? 'default' : 'destructive'} className={num.status === 'RTP' ? `bg-green-500/20 text-green-700 hover:bg-green-500/30` : `bg-red-500/20 text-red-700 hover:bg-red-500/30`}>{num.status}</Badge>
+                      <Badge variant={num.status === 'RTP' ? 'default' : 'destructive'} className={num.status === 'RTP' ? `bg-green-500/20 text-green-700 hover:bg-green-500/30` : `bg-red-500/20 text-red-700 hover:bg-red-500/30`}>{num.status}</Badge>
                     </TableCell>
                     <TableCell>{num.purchaseFrom}</TableCell>
                     <TableCell>{num.rtpDate ? format(num.rtpDate.toDate(), 'PPP') : 'N/A'}</TableCell>
                     <TableCell className="text-right">
-                    {(role === 'admin' || role === 'employee') && (
+                      {(role === 'admin' || role === 'employee') && (
                         <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/numbers/${num.id}`, pathname)}>View Details</DropdownMenuItem>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/numbers/${num.id}`)}>View Details</DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMarkRTP(num); }}>Update RTP Status</DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditUpload(num); }}>Edit Upload Status</DropdownMenuItem>
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditLocation(num); }}>
@@ -628,39 +626,39 @@ export default function AllNumbersPage() {
                               Edit Location
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePreBook(num); }}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePreBook(num); }}>
                               <Bookmark className="mr-2 h-4 w-4" />
                               Pre-Book Number
                             </DropdownMenuItem>
                             <DropdownMenuItem className="text-green-600 focus:text-green-700" onClick={(e) => { e.stopPropagation(); handleSellNumber(num); }}>
-                            <DollarSign className="mr-2 h-4 w-4" />
-                            Mark as Sold
+                              <DollarSign className="mr-2 h-4 w-4" />
+                              Mark as Sold
                             </DropdownMenuItem>
-                             <DropdownMenuSeparator />
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); openDeleteModal([num.id]); }}>
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete Number
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete Number
                             </DropdownMenuItem>
-                        </DropdownMenuContent>
+                          </DropdownMenuContent>
                         </DropdownMenu>
-                    )}
+                      )}
                     </TableCell>
-                    </TableRow>
+                  </TableRow>
                 ))
               ) : (
                 <TableRow>
-                    <TableCell colSpan={17} className="h-24 text-center">
-                        {searchTerm && `No number found for "${searchTerm}".`}
-                        {!searchTerm && "No numbers found for the current filters."}
-                        {searchTerm && (
-                           <Button 
-                             variant="link"
-                             onClick={handleAddFromSearch}
-                           >
-                             Add this number
-                           </Button>
-                        )}
-                    </TableCell>
+                  <TableCell colSpan={17} className="h-24 text-center">
+                    {searchTerm && `No number found for "${searchTerm}".`}
+                    {!searchTerm && "No numbers found for the current filters."}
+                    {searchTerm && (
+                      <Button
+                        variant="link"
+                        onClick={handleAddFromSearch}
+                      >
+                        Add this number
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -683,7 +681,7 @@ export default function AllNumbersPage() {
           number={selectedNumber}
         />
       )}
-       {selectedNumber && (
+      {selectedNumber && (
         <SellNumberModal
           isOpen={isSellModalOpen}
           onClose={() => setIsSellModalOpen(false)}
@@ -695,12 +693,12 @@ export default function AllNumbersPage() {
         onClose={closeBulkSellModal}
         selectedNumbers={selectedNumberRecords}
       />
-       <BulkEditUploadStatusModal
+      <BulkEditUploadStatusModal
         isOpen={isBulkUploadModalOpen}
         onClose={closeBulkUploadModal}
         selectedNumbers={selectedNumberRecords}
       />
-      <EditLocationModal 
+      <EditLocationModal
         isOpen={isLocationModalOpen}
         onClose={closeLocationModal}
         selectedNumbers={selectedNumberRecords}
@@ -715,41 +713,41 @@ export default function AllNumbersPage() {
       />
       {role === 'admin' && (
         <AssignNumbersModal
-            isOpen={isAssignModalOpen}
-            onClose={closeAssignModal}
-            selectedNumbers={selectedNumberRecords}
+          isOpen={isAssignModalOpen}
+          onClose={closeAssignModal}
+          selectedNumbers={selectedNumberRecords}
         />
       )}
-       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action will move {rowsToDelete.length} number record(s) to the Deleted Numbers archive. Please provide a reason.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-4 space-y-2">
-                    <Label htmlFor="delete-reason" className={deleteReasonError ? 'text-destructive': ''}>Reason for Deletion (Required)</Label>
-                    <Textarea 
-                        id="delete-reason"
-                        value={deleteReason}
-                        onChange={(e) => {
-                            setDeleteReason(e.target.value);
-                            if (e.target.value.trim()) setDeleteReasonError('');
-                        }}
-                        placeholder="e.g. Data cleanup, numbers sold outside system."
-                        className={deleteReasonError ? 'border-destructive focus-visible:ring-destructive' : ''}
-                    />
-                    {deleteReasonError && <p className="text-sm font-medium text-destructive">{deleteReasonError}</p>}
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={closeDeleteModal}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirmDelete} disabled={!deleteReason.trim()}>
-                        Yes, delete
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+      <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will move {rowsToDelete.length} number record(s) to the Deleted Numbers archive. Please provide a reason.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-2">
+            <Label htmlFor="delete-reason" className={deleteReasonError ? 'text-destructive' : ''}>Reason for Deletion (Required)</Label>
+            <Textarea
+              id="delete-reason"
+              value={deleteReason}
+              onChange={(e) => {
+                setDeleteReason(e.target.value);
+                if (e.target.value.trim()) setDeleteReasonError('');
+              }}
+              placeholder="e.g. Data cleanup, numbers sold outside system."
+              className={deleteReasonError ? 'border-destructive focus-visible:ring-destructive' : ''}
+            />
+            {deleteReasonError && <p className="text-sm font-medium text-destructive">{deleteReasonError}</p>}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={closeDeleteModal}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={!deleteReason.trim()}>
+              Yes, delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog open={isPreBookConfirmationOpen} onOpenChange={setIsPreBookConfirmationOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -43,3 +43,83 @@
 20260309:000851.263: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_loctype_Store
 20260309:000854.635: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_assign_Tum71bdidON0MBKTix6tNfrdkWy1
 20260309:000857.100: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: add_num_final_confirm
+20260309:230639.421: INFO: Firebase Admin SDK initialized successfully.
+20260309:230640.019: INFO: Starting the Telegram bot...
+20260309:230640.022: INFO: Bot has been initialized.
+20260309:230640.023: INFO: Starting the Telegram Server...
+20260309:230640.027: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:230640.023: INFO: Bot is now running.
+20260309:230640.027: INFO: Server is now running.
+20260309:233148.725: INFO: Firebase Admin SDK initialized successfully.
+20260309:233149.140: INFO: Starting the Telegram bot...
+20260309:233149.143: INFO: Bot has been initialized.
+20260309:233149.143: INFO: Starting the Telegram Server...
+20260309:233149.147: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:233149.143: INFO: Bot is now running.
+20260309:233149.148: INFO: Server is now running.
+20260309:233215.982: INFO: Firebase Admin SDK initialized successfully.
+20260309:233216.435: INFO: Starting the Telegram bot...
+20260309:233216.438: INFO: Bot has been initialized.
+20260309:233216.438: INFO: Bot is now running.
+20260309:233216.439: INFO: Starting the Telegram Server...
+20260309:233216.442: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:233216.442: INFO: Server is now running.
+20260309:233234.430: INFO: Firebase Admin SDK initialized successfully.
+20260309:233234.865: INFO: Starting the Telegram bot...
+20260309:233234.867: INFO: Bot has been initialized.
+20260309:233234.868: INFO: Starting the Telegram Server...
+20260309:233234.872: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:233234.868: INFO: Bot is now running.
+20260309:233234.872: INFO: Server is now running.
+20260309:233249.240: INFO: Firebase Admin SDK initialized successfully.
+20260309:233249.723: INFO: Starting the Telegram bot...
+20260309:233249.726: INFO: Bot has been initialized.
+20260309:233249.726: INFO: Bot is now running.
+20260309:233249.727: INFO: Starting the Telegram Server...
+20260309:233249.731: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:233249.731: INFO: Server is now running.
+20260309:233310.653: INFO: Firebase Admin SDK initialized successfully.
+20260309:233311.125: INFO: Starting the Telegram bot...
+20260309:233311.128: INFO: Starting the Telegram Server...
+20260309:233311.132: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:233311.127: INFO: Bot has been initialized.
+20260309:233311.128: INFO: Bot is now running.
+20260309:233311.132: INFO: Server is now running.
+20260309:233319.033: INFO: Firebase Admin SDK initialized successfully.
+20260309:233319.503: INFO: Bot has been initialized.
+20260309:233319.500: INFO: Starting the Telegram bot...
+20260309:233319.504: INFO: Starting the Telegram Server...
+20260309:233319.504: INFO: Bot is now running.
+20260309:233319.508: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:233319.508: INFO: Server is now running.
+20260309:233400.367: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260309:233412.605: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inventory_update_status
+20260309:233510.731: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 0022002200
+20260309:233517.900: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: upd_stat_type_RTP
+20260309:233522.195: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: upd_stat_rtp_Non-RTP
+20260309:233542.269: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 2026-03-10
+20260309:233550.956: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: upd_stat_confirm
+20260309:233608.058: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260309:233613.018: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inventory_assign_user
+20260309:233618.984: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 0022002200
+20260309:233624.419: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: assn_usr_uid_Tum71bdidON0MBKTix6tNfrdkWy1
+20260309:233627.161: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: assn_usr_confirm
+20260309:233634.817: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260309:233639.159: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inventory_delete_numbers
+20260309:233642.827: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 0022002200
+20260309:233646.834: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: del_num_confirm
+20260309:234719.446: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]
+20260309:235840.713: INFO: Firebase Admin SDK initialized successfully.
+20260309:235841.204: INFO: Starting the Telegram bot...
+20260309:235841.207: INFO: Bot has been initialized.
+20260309:235841.208: INFO: Bot is now running.
+20260309:235841.213: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:235841.213: INFO: Server is now running.
+20260309:235841.209: INFO: Starting the Telegram Server...
+20260309:235936.621: INFO: Firebase Admin SDK initialized successfully.
+20260309:235937.112: INFO: Starting the Telegram bot...
+20260309:235937.115: INFO: Bot has been initialized.
+20260309:235937.117: INFO: Starting the Telegram Server...
+20260309:235937.116: INFO: Bot is now running.
+20260309:235937.120: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260309:235937.121: INFO: Server is now running.

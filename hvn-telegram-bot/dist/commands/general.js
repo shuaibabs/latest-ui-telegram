@@ -18,6 +18,9 @@ function registerGeneralCommands(router) {
         else if (chatId === env_1.env.TG_GROUP_USERS) {
             callbackData = 'manage_users_start';
         }
+        else if (chatId === env_1.env.TG_GROUP_INVENTORY) {
+            callbackData = 'inventory_start';
+        }
         router.bot.sendMessage(msg.chat.id, "😕 *Unrecognized Command*\n\nIt's not the correct command. Please use /start to see available options.", {
             parse_mode: 'Markdown',
             reply_markup: {

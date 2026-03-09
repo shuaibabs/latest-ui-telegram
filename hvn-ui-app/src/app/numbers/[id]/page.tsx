@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useApp } from '@/context/app-context';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -29,7 +29,6 @@ export default function NumberDetailsPage() {
   const { id } = useParams();
   const { numbers, loading } = useApp();
   const { back, navigate } = useNavigation();
-  const pathname = usePathname();
 
   const numberId = Array.isArray(id) ? id[0] : id;
 
@@ -62,17 +61,17 @@ export default function NumberDetailsPage() {
         description={`Viewing full details for ${number.mobile}`}
       >
         <div className="flex gap-2">
-            <Button variant="outline" onClick={() => back()}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-            </Button>
-            <Button onClick={() => navigate(`/numbers/${number.id}/edit`, pathname)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-            </Button>
+          <Button variant="outline" onClick={() => back()}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          <Button onClick={() => navigate(`/numbers/${number.id}/edit`)}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
         </div>
       </PageHeader>
-      
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -81,18 +80,18 @@ export default function NumberDetailsPage() {
               <CardDescription>Digital Root Sum: {number.sum}</CardDescription>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline">{number.numberType}</Badge>
-                <Badge variant={number.status === 'RTP' ? 'default' : 'destructive'} className={number.status === 'RTP' ? `bg-green-500/20 text-green-700` : `bg-red-500/20 text-red-700`}>
+              <Badge variant="outline">{number.numberType}</Badge>
+              <Badge variant={number.status === 'RTP' ? 'default' : 'destructive'} className={number.status === 'RTP' ? `bg-green-500/20 text-green-700` : `bg-red-500/20 text-red-700`}>
                 {number.status}
-                </Badge>
+              </Badge>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-           <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
-             <DetailItem label="Assigned To" value={number.assignedTo} />
-             <DetailItem label="Assigned Name" value={number.name} />
-             {number.numberType === 'COCP' && <DetailItem label="Account Name" value={number.accountName} />}
+          <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+            <DetailItem label="Assigned To" value={number.assignedTo} />
+            <DetailItem label="Assigned Name" value={number.name} />
+            {number.numberType === 'COCP' && <DetailItem label="Account Name" value={number.accountName} />}
           </div>
 
           <Separator />
@@ -104,7 +103,7 @@ export default function NumberDetailsPage() {
           </div>
 
           <Separator />
-          
+
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
             <h4 className="text-lg font-semibold col-span-full">Purchase Information</h4>
             <DetailItem label="Purchased From" value={number.purchaseFrom} />
@@ -117,14 +116,14 @@ export default function NumberDetailsPage() {
 
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-4">
             <h4 className="text-lg font-semibold col-span-full">Status & Location</h4>
-             <DetailItem label="Scheduled RTP Date" value={number.rtpDate ? format(number.rtpDate.toDate(), 'PPP') : 'N/A'} />
-             {number.numberType === 'COCP' && <DetailItem label="Safe Custody Date" value={number.safeCustodyDate ? format(number.safeCustodyDate.toDate(), 'PPP') : 'N/A'} />}
-             {number.numberType === 'Postpaid' && <DetailItem label="Bill Date" value={number.billDate ? format(number.billDate.toDate(), 'PPP') : 'N/A'} />}
-             {number.numberType === 'Postpaid' && <DetailItem label="PD Bill" value={number.pdBill} />}
+            <DetailItem label="Scheduled RTP Date" value={number.rtpDate ? format(number.rtpDate.toDate(), 'PPP') : 'N/A'} />
+            {number.numberType === 'COCP' && <DetailItem label="Safe Custody Date" value={number.safeCustodyDate ? format(number.safeCustodyDate.toDate(), 'PPP') : 'N/A'} />}
+            {number.numberType === 'Postpaid' && <DetailItem label="Bill Date" value={number.billDate ? format(number.billDate.toDate(), 'PPP') : 'N/A'} />}
+            {number.numberType === 'Postpaid' && <DetailItem label="PD Bill" value={number.pdBill} />}
             <DetailItem label="Current Location" value={number.currentLocation} />
             <DetailItem label="Location Type" value={number.locationType} />
           </div>
-          
+
           {number.notes && (
             <>
               <Separator />

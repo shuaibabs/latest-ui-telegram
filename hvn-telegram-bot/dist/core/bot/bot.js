@@ -12,6 +12,7 @@ const commandRouter_1 = require("../router/commandRouter");
 const general_1 = require("../../commands/general");
 const users_1 = require("../../features/users");
 const activities_1 = require("../../features/activities");
+const inventory_1 = require("../../features/inventory");
 let bot = null;
 let commandRouter = null;
 function initializeBot() {
@@ -23,6 +24,7 @@ function initializeBot() {
         (0, general_1.registerGeneralCommands)(commandRouter);
         (0, users_1.registerUsersFeature)(commandRouter);
         (0, activities_1.registerActivitiesFeature)(commandRouter);
+        (0, inventory_1.registerInventoryFeature)(commandRouter);
         // Start listening for commands
         commandRouter.listen();
         // Generic error handling

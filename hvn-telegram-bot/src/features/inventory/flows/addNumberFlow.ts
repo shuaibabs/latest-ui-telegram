@@ -35,7 +35,7 @@ type AddNumberSession = {
     data: Partial<NewNumberData> & { rawNumbers?: string[] };
 };
 
-const cancelBtn = { text: '❌ Cancel', callback_data: 'add_number_cancel' };
+const cancelBtn = { text: '❌ Cancel', callback_data: 'add_num_cancel' };
 
 export async function startAddNumberFlow(bot: TelegramBot, chatId: number) {
     setSession(chatId, 'addNumber', {
