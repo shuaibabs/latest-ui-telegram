@@ -114,7 +114,7 @@ function registerSearchFlow(router) {
             session.stage = 'AWAIT_MUST_CONTAINS';
             session.type = 'MustContains';
             (0, sessionManager_1.setSession)(chatId, 'searchNumbers', session);
-            yield bot.sendMessage(chatId, "*Must Contains Search*\n\nEnter the digits allowed (comma separated, e.g. 9,1,5):", {
+            yield bot.sendMessage(chatId, "🔢 *Must Only Contain Digits*\n\nPlease enter the digits allowed. The search will find numbers that consist *entirely* of combinations of these digits.\n\n*Format:* Comma separated (e.g. `9,1,2`)", {
                 parse_mode: 'Markdown',
                 reply_markup: { inline_keyboard: [[cancelBtn]] }
             });
@@ -189,15 +189,28 @@ function performSearch(bot, chatId, criteria) {
             }
             else {
                 const count = results.length;
-                let text = `🔍 *Search Results (${count})*\n\n`;
-                // Limit to top 20 for message size constraints
-                const displayResults = results.slice(0, 20);
+                // Generate criteria summary
+                const activeCriteria = Object.entries(criteria)
+                    .filter(([_, v]) => v)
+                    .map(([k, v]) => `${criteriaLabels[k] || k}: ${v}`)
+                    .join(' | ');
+                let text = `🔍 *Search Results (${count})*\n`;
+                if (activeCriteria)
+                    text += `🎯 *Filters:* \`${activeCriteria}\`\n`;
+                text += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+                // Limit to top 15 for message size constraints (more details per item now)
+                const displayResults = results.slice(0, 15);
                 displayResults.forEach((num, i) => {
-                    text += `${i + 1}. \`${num.mobile}\` | ${num.status} | ₹${num.salePrice}\n`;
+                    text += `${i + 1}. \`${num.mobile}\`\n`;
+                    text += `   ├ Status: *${num.status}*\n`;
+                    text += `   ├ Type: ${num.numberType}\n`;
+                    text += `   ├ Sale: ₹${num.salePrice} | Pur: ₹${num.purchasePrice}\n`;
+                    text += `   └ Sum: ${num.sum} | Loc: ${num.currentLocation || 'N/A'}\n\n`;
                 });
-                if (count > 20) {
-                    text += `\n...and ${count - 20} more.`;
+                if (count > 15) {
+                    text += `...and ${count - 15} more. Use more specific filters to narrow down.`;
                 }
+                text += `\n━━━━━━━━━━━━━━━━━━━━`;
                 yield bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
             }
         }

@@ -133,3 +133,10 @@ export const globalHistoryRecordSchema = z.object({
     }).optional(),
     history: z.array(lifecycleEventSchema).optional(),
 });
+
+export const salesVendorRecordSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    createdAt: timestampSchema,
+    createdBy: z.string(),
+});

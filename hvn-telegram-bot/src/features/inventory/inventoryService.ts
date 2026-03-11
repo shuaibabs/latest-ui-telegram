@@ -1,5 +1,5 @@
 import { db } from '../../config/firebase';
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { NumberRecord, NewNumberData } from '../../shared/types/data';
 import { numberRecordSchema } from '../../shared/utils/validation';
 import { calculateDigitalRoot } from '../../shared/utils/utils';
@@ -407,16 +407,35 @@ export const prebookNumbersBatch = async (
 };
 
 /**
- * Gets unique vendors from the 'sales' collection.
+ * Gets unique vendors from the 'salesVendors' collection.
  */
 export const getExistingVendors = async (): Promise<string[]> => {
-    const snapshot = await db.collection('sales').select('soldTo').get();
+    const snapshot = await db.collection('salesVendors').select('name').get();
     const vendorsSet = new Set<string>();
     snapshot.docs.forEach(doc => {
-        const soldTo = doc.data().soldTo;
-        if (soldTo) vendorsSet.add(soldTo);
+        const name = doc.data().name;
+        if (name) vendorsSet.add(name);
     });
     return Array.from(vendorsSet).sort();
+};
+
+/**
+ * Adds a new vendor to the 'salesVendors' collection if it doesn't already exist.
+ */
+export const addNewVendor = async (vendorName: string, createdByUid: string): Promise<void> => {
+    const trimmedName = vendorName.trim();
+    if (!trimmedName) return;
+
+    const existing = await getExistingVendors();
+    const exists = existing.some(v => v.toLowerCase() === trimmedName.toLowerCase());
+
+    if (!exists) {
+        await db.collection('salesVendors').add({
+            name: trimmedName,
+            createdAt: FieldValue.serverTimestamp(),
+            createdBy: createdByUid
+        });
+    }
 };
 
 export type AdvancedSearchCriteria = {

@@ -35,7 +35,7 @@ type BulkSellNumberModalProps = {
 };
 
 export function BulkSellNumberModal({ isOpen, onClose, selectedNumbers, isPreBooking = false }: BulkSellNumberModalProps) {
-  const { bulkSellNumbers, bulkSellPreBookedNumbers, vendors } = useApp();
+  const { bulkSellNumbers, bulkSellPreBookedNumbers, vendors, addSalesVendor } = useApp();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const vendorOptions = useMemo(() => {
@@ -53,8 +53,8 @@ export function BulkSellNumberModal({ isOpen, onClose, selectedNumbers, isPreBoo
 
   const totalPurchasePrice = useMemo(() => {
     return selectedNumbers.reduce((acc, num) => {
-        const price = num.purchasePrice ?? num.originalNumberData?.purchasePrice ?? 0;
-        return acc + price;
+      const price = num.purchasePrice ?? (num as any).originalNumberData?.purchasePrice ?? 0;
+      return acc + price;
     }, 0);
   }, [selectedNumbers]);
 
@@ -68,7 +68,8 @@ export function BulkSellNumberModal({ isOpen, onClose, selectedNumbers, isPreBoo
     }
   }, [isOpen, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    await addSalesVendor(values.soldTo);
     if (isPreBooking) {
       bulkSellPreBookedNumbers(selectedNumbers, values);
     } else {
@@ -89,93 +90,93 @@ export function BulkSellNumberModal({ isOpen, onClose, selectedNumbers, isPreBoo
             Total purchase price: <span className='font-semibold'>₹{totalPurchasePrice.toLocaleString()}</span>.
           </DialogDescription>
         </DialogHeader>
-         <div className="py-4 space-y-4">
-            <div>
-                <p className="text-sm font-medium mb-2">Selected Numbers:</p>
-                <ScrollArea className="h-24 w-full rounded-md border p-2">
-                    <div className="flex flex-wrap gap-2">
-                        {selectedNumbers.map(num => (
-                            <Badge key={num.id} variant="secondary">{num.mobile}</Badge>
-                        ))}
-                    </div>
-                </ScrollArea>
-            </div>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} id="bulk-sell-number-form" className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="salePrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Sale Price (for each)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="Enter sale price" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="soldTo"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                        <FormLabel>Sold To</FormLabel>
-                        <Combobox
-                            options={vendorOptions}
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="Select or type a name..."
-                            searchPlaceholder="Search or add new..."
-                            emptyMessage="No matching vendor found."
+        <div className="py-4 space-y-4">
+          <div>
+            <p className="text-sm font-medium mb-2">Selected Numbers:</p>
+            <ScrollArea className="h-24 w-full rounded-md border p-2">
+              <div className="flex flex-wrap gap-2">
+                {selectedNumbers.map(num => (
+                  <Badge key={num.id} variant="secondary">{num.mobile}</Badge>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} id="bulk-sell-number-form" className="space-y-4">
+              <FormField
+                control={form.control}
+                name="salePrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sale Price (for each)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="Enter sale price" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="soldTo"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Sold To</FormLabel>
+                    <Combobox
+                      options={vendorOptions}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select or type a name..."
+                      searchPlaceholder="Search or add new..."
+                      emptyMessage="No matching vendor found."
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="saleDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Sale Date</FormLabel>
+                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            if (date) field.onChange(date);
+                            setIsDatePickerOpen(false);
+                          }}
+                          initialFocus
                         />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                    control={form.control}
-                    name="saleDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Sale Date</FormLabel>
-                        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(date) => {
-                                if (date) field.onChange(date);
-                                setIsDatePickerOpen(false);
-                              }}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-              </form>
-            </Form>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

@@ -56,7 +56,7 @@ export default function SimLocationsPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -67,7 +67,7 @@ export default function SimLocationsPage() {
   };
 
   const handleSelectRow = (id: string) => {
-    setSelectedRows(prev => 
+    setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
     );
   };
@@ -82,7 +82,7 @@ export default function SimLocationsPage() {
   };
 
   const isAllOnPageSelected = paginatedNumbers.length > 0 && paginatedNumbers.every(n => selectedRows.includes(n.id));
-  
+
   const selectedNumberRecords = numbers.filter(n => selectedRows.includes(n.id));
 
   const openLocationModal = (number?: NumberRecord) => {
@@ -127,54 +127,54 @@ export default function SimLocationsPage() {
       </PageHeader>
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
         <div className="flex flex-col sm:flex-row items-center gap-4 flex-wrap w-full">
-            <Input 
-              placeholder="Search by mobile number..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="max-w-full sm:max-w-xs"
-            />
-            <Select value={locationTypeFilter} onValueChange={setLocationTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filter by location type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Location Types</SelectItem>
-                <SelectItem value="Store">Store</SelectItem>
-                <SelectItem value="Employee">Employee</SelectItem>
-                <SelectItem value="Dealer">Dealer</SelectItem>
-              </SelectContent>
-            </Select>
-             <Select value={currentLocationFilter} onValueChange={setCurrentLocationFilter}>
-              <SelectTrigger className="w-full sm:w-[240px]">
-                <SelectValue placeholder="Filter by Current Location" />
-              </SelectTrigger>
-              <SelectContent>
-                {currentLocationOptions.map(location => (
-                    <SelectItem key={location} value={location}>
-                        {location === 'all' ? 'All Current Locations' : location}
-                    </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Items per page" />
-              </SelectTrigger>
-              <SelectContent>
-                {ITEMS_PER_PAGE_OPTIONS.map(val => (
-                  <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-             {selectedRows.length > 0 && (
-                <Button variant="outline" onClick={() => openLocationModal()}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Location ({selectedRows.length})
-                </Button>
-            )}
+          <Input
+            placeholder="Search by mobile number..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="max-w-full sm:max-w-xs"
+          />
+          <Select value={locationTypeFilter} onValueChange={setLocationTypeFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by location type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Location Types</SelectItem>
+              <SelectItem value="Store">Store</SelectItem>
+              <SelectItem value="Employee">Employee</SelectItem>
+              <SelectItem value="Dealer">Dealer</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={currentLocationFilter} onValueChange={setCurrentLocationFilter}>
+            <SelectTrigger className="w-full sm:w-[240px]">
+              <SelectValue placeholder="Filter by Current Location" />
+            </SelectTrigger>
+            <SelectContent>
+              {currentLocationOptions.map(location => (
+                <SelectItem key={location} value={location}>
+                  {location === 'all' ? 'All Current Locations' : location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map(val => (
+                <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedRows.length > 0 && (
+            <Button variant="outline" onClick={() => openLocationModal()}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Location ({selectedRows.length})
+            </Button>
+          )}
         </div>
       </div>
       <div className="border rounded-lg">
@@ -182,11 +182,11 @@ export default function SimLocationsPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
-                  <Checkbox
-                    checked={isAllOnPageSelected}
-                    onCheckedChange={handleSelectAllOnPage}
-                    aria-label="Select all on this page"
-                  />
+                <Checkbox
+                  checked={isAllOnPageSelected}
+                  onCheckedChange={handleSelectAllOnPage}
+                  aria-label="Select all on this page"
+                />
               </TableHead>
               <TableHead>Sr.No</TableHead>
               <TableHead>Mobile</TableHead>
@@ -199,65 +199,65 @@ export default function SimLocationsPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-                <TableSpinner colSpan={8} />
+              <TableSpinner colSpan={8} />
             ) : paginatedNumbers.length > 0 ? (
-                paginatedNumbers.map((num) => (
+              paginatedNumbers.map((num) => (
                 <TableRow key={num.id} data-state={selectedRows.includes(num.id) && "selected"}>
-                    <TableCell>
-                       <Checkbox
-                            checked={selectedRows.includes(num.id)}
-                            onCheckedChange={() => handleSelectRow(num.id)}
-                            aria-label="Select row"
-                        />
-                    </TableCell>
-                    <TableCell>{num.srNo}</TableCell>
-                    <TableCell className="font-medium">{highlightMatch(num.mobile, searchTerm)}</TableCell>
-                    <TableCell>{num.currentLocation}</TableCell>
-                    <TableCell>{num.locationType}</TableCell>
-                    <TableCell>{num.assignedTo}</TableCell>
-                    <TableCell>{num.checkInDate ? format(num.checkInDate.toDate(), 'PPP p') : 'N/A'}</TableCell>
-                    <TableCell className="text-right">
-                      <div className='flex items-center justify-end gap-2'>
-                        <Button size="sm" variant="outline" onClick={() => checkInNumber(num.id)}>
-                            <LogIn className="mr-2 h-4 w-4" />
-                            Check In
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openLocationModal(num)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Location
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedRows.includes(num.id)}
+                      onCheckedChange={() => handleSelectRow(num.id)}
+                      aria-label="Select row"
+                    />
+                  </TableCell>
+                  <TableCell>{num.srNo}</TableCell>
+                  <TableCell className="font-medium">{highlightMatch(num.mobile, searchTerm)}</TableCell>
+                  <TableCell>{num.currentLocation}</TableCell>
+                  <TableCell>{num.locationType}</TableCell>
+                  <TableCell>{num.assignedTo}</TableCell>
+                  <TableCell>{num.checkInDate ? format(num.checkInDate.toDate(), 'PPP p') : 'N/A'}</TableCell>
+                  <TableCell className="text-right">
+                    <div className='flex items-center justify-end gap-2'>
+                      <Button size="sm" variant="outline" onClick={() => checkInNumber(num.id)}>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Check In
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openLocationModal(num)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Location
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
                 </TableRow>
-                ))
+              ))
             ) : (
-                <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
-                        {searchTerm ? `No SIMs found for "${searchTerm}".` : "No SIMs found for this filter."}
-                    </TableCell>
-                </TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="h-24 text-center">
+                  {searchTerm ? `No SIMs found for "${searchTerm}".` : "No SIMs found for this filter."}
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <Pagination 
+      <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
         itemsPerPage={itemsPerPage}
         totalItems={filteredNumbers.length}
       />
-      <EditLocationModal 
+      <EditLocationModal
         isOpen={isLocationModalOpen}
         onClose={closeLocationModal}
         selectedNumbers={selectedNumberRecords}

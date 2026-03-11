@@ -168,3 +168,12 @@ export type GlobalHistoryRecord = {
   };
   history?: LifecycleEvent[];
 };
+
+export type SalesVendorRecord = {
+  id: string; // Firestore document ID
+  name: string; // The vendor's unique name
+  createdAt: Timestamp;
+  createdBy: string;
+};
+
+export type NewSalesVendorData = Omit<SalesVendorRecord, 'id' | 'createdAt' | 'createdBy'>;

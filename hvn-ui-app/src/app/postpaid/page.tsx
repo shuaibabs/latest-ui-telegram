@@ -50,8 +50,8 @@ export default function PostpaidPage() {
   }, [numbers, role, user?.displayName]);
 
   const sortedNumbers = useMemo(() => {
-    let sortableItems = [...postpaidNumbers].filter(num => 
-        num.mobile && num.mobile.toLowerCase().includes(searchTerm.toLowerCase())
+    let sortableItems = [...postpaidNumbers].filter(num =>
+      num.mobile && num.mobile.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (sortConfig !== null) {
@@ -61,19 +61,19 @@ export default function PostpaidPage() {
 
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
-        
+
         let comparison = 0;
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-            comparison = aValue.localeCompare(bValue);
+          comparison = aValue.localeCompare(bValue);
         } else if (aValue instanceof Timestamp && bValue instanceof Timestamp) {
-            comparison = aValue.toMillis() - bValue.toMillis();
+          comparison = aValue.toMillis() - bValue.toMillis();
         } else {
-             if (aValue < bValue) {
-                comparison = -1;
-            }
-            if (aValue > bValue) {
-                comparison = 1;
-            }
+          if (aValue < bValue) {
+            comparison = -1;
+          }
+          if (aValue > bValue) {
+            comparison = 1;
+          }
         }
         return sortConfig.direction === 'ascending' ? comparison : -comparison;
       });
@@ -95,7 +95,7 @@ export default function PostpaidPage() {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
-  
+
   const requestSort = (key: SortableColumn) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -106,7 +106,7 @@ export default function PostpaidPage() {
   };
 
   const handleSelectRow = (id: string) => {
-    setSelectedRows(prev => 
+    setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
     );
   };
@@ -119,18 +119,18 @@ export default function PostpaidPage() {
       setSelectedRows(prev => prev.filter(id => !pageIds.includes(id)));
     }
   };
-  
+
   const isAllOnPageSelected = paginatedNumbers.length > 0 && paginatedNumbers.every(n => selectedRows.includes(n.id));
 
   const exportToCsv = (dataToExport: NumberRecord[], fileName: string) => {
-     const formattedData = dataToExport.map(n => ({
-        "Sr.No": n.srNo,
-        "Mobile": n.mobile,
-        "Sum": n.sum,
-        "Status": n.status,
-        "RTP Date": n.rtpDate ? format(n.rtpDate.toDate(), 'yyyy-MM-dd') : 'N/A',
-        "Bill Date": n.billDate ? format(n.billDate.toDate(), 'yyyy-MM-dd') : 'N/A',
-        "PD Bill": n.pdBill
+    const formattedData = dataToExport.map(n => ({
+      "Sr.No": n.srNo,
+      "Mobile": n.mobile,
+      "Sum": n.sum,
+      "Status": n.status,
+      "RTP Date": n.rtpDate ? format(n.rtpDate.toDate(), 'yyyy-MM-dd') : 'N/A',
+      "Bill Date": n.billDate ? format(n.billDate.toDate(), 'yyyy-MM-dd') : 'N/A',
+      "PD Bill": n.pdBill
     }));
 
     const csv = Papa.unparse(formattedData);
@@ -156,14 +156,14 @@ export default function PostpaidPage() {
       return;
     }
     exportToCsv(selectedData, 'postpaid_numbers_export.csv');
-     addActivity({
-        employeeName: user?.displayName || 'User',
-        action: 'Exported Data',
-        description: `Exported ${selectedData.length} selected Postpaid number(s) to CSV.`
+    addActivity({
+      employeeName: user?.displayName || 'User',
+      action: 'Exported Data',
+      description: `Exported ${selectedData.length} selected Postpaid number(s) to CSV.`
     });
     toast({
-        title: "Export Successful",
-        description: `${selectedData.length} selected Postpaid numbers have been exported to CSV.`,
+      title: "Export Successful",
+      description: `${selectedData.length} selected Postpaid numbers have been exported to CSV.`,
     });
     setSelectedRows([]);
   }
@@ -172,7 +172,7 @@ export default function PostpaidPage() {
     setSelectedNumber(number);
     setIsEditModalOpen(true);
   };
-  
+
   const getSortIcon = (columnKey: SortableColumn) => {
     if (!sortConfig || sortConfig.key !== columnKey) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />;
@@ -185,10 +185,10 @@ export default function PostpaidPage() {
 
   const SortableHeader = ({ column, label }: { column: SortableColumn, label: string }) => (
     <TableHead>
-        <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
-            {label}
-            {getSortIcon(column)}
-        </Button>
+      <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
+        {label}
+        {getSortIcon(column)}
+      </Button>
     </TableHead>
   );
 
@@ -211,7 +211,7 @@ export default function PostpaidPage() {
       </span>
     );
   };
-  
+
   const selectedNumberRecords = postpaidNumbers.filter(n => selectedRows.includes(n.id));
 
   return (
@@ -220,52 +220,52 @@ export default function PostpaidPage() {
         title="Postpaid Numbers"
         description="List of all Postpaid numbers."
       />
-       <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-4 flex-wrap">
-             <Input 
-              placeholder="Search by mobile number..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="max-w-full sm:max-w-sm"
-            />
-             <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Items per page" />
-              </SelectTrigger>
-              <SelectContent>
-                {ITEMS_PER_PAGE_OPTIONS.map(val => (
-                   <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-             {selectedRows.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                    <Button variant="outline" onClick={handleExportSelected} disabled={loading || selectedRows.length === 0}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export Selected ({selectedRows.length})
-                    </Button>
-                    <Button variant="outline" onClick={() => setIsBulkEditModalOpen(true)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Details ({selectedRows.length})
-                    </Button>
-                </div>
-            )}
-          </div>
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          <Input
+            placeholder="Search by mobile number..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="max-w-full sm:max-w-sm"
+          />
+          <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map(val => (
+                <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedRows.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" onClick={handleExportSelected} disabled={loading || selectedRows.length === 0}>
+                <Download className="mr-2 h-4 w-4" />
+                Export Selected ({selectedRows.length})
+              </Button>
+              <Button variant="outline" onClick={() => setIsBulkEditModalOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Details ({selectedRows.length})
+              </Button>
+            </div>
+          )}
         </div>
+      </div>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
-                   <Checkbox
-                        checked={isAllOnPageSelected}
-                        onCheckedChange={handleSelectAllOnPage}
-                        aria-label="Select all on this page"
-                    />
-                </TableHead>
+                <Checkbox
+                  checked={isAllOnPageSelected}
+                  onCheckedChange={handleSelectAllOnPage}
+                  aria-label="Select all on this page"
+                />
+              </TableHead>
               <SortableHeader column="srNo" label="Sr.No" />
               <SortableHeader column="mobile" label="Number" />
               <SortableHeader column="sum" label="Sum" />
@@ -278,49 +278,49 @@ export default function PostpaidPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-                <TableSpinner colSpan={9} />
+              <TableSpinner colSpan={9} />
             ) : paginatedNumbers.length > 0 ? (
-                paginatedNumbers.map((num) => (
-                        <TableRow 
-                            key={num.id} 
-                            data-state={selectedRows.includes(num.id) && "selected"}
-                        >
-                        <TableCell>
-                            <Checkbox
-                                    checked={selectedRows.includes(num.id)}
-                                    onCheckedChange={() => handleSelectRow(num.id)}
-                                    aria-label="Select row"
-                                />
-                            </TableCell>
-                            <TableCell>{num.srNo}</TableCell>
-                            <TableCell className="font-medium">{highlightMatch(num.mobile, searchTerm)}</TableCell>
-                            <TableCell>{num.sum}</TableCell>
-                            <TableCell>
-                            <Badge variant={num.status === 'RTP' ? 'default' : 'destructive'} className={num.status === 'RTP' ? `bg-green-500/20 text-green-700` : `bg-red-500/20 text-red-700`}>{num.status}</Badge>
-                            </TableCell>
-                            <TableCell>{num.rtpDate ? format(num.rtpDate.toDate(), 'PPP') : 'N/A'}</TableCell>
-                            <TableCell>{num.billDate ? format(num.billDate.toDate(), 'PPP') : 'N/A'}</TableCell>
-                            <TableCell>
-                                <Badge variant={num.pdBill === 'Yes' ? 'secondary' : 'outline'}>{num.pdBill}</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleEditClick(num)}>
-                                    Edit Details
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                    )
-                )
+              paginatedNumbers.map((num) => (
+                <TableRow
+                  key={num.id}
+                  data-state={selectedRows.includes(num.id) && "selected"}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedRows.includes(num.id)}
+                      onCheckedChange={() => handleSelectRow(num.id)}
+                      aria-label="Select row"
+                    />
+                  </TableCell>
+                  <TableCell>{num.srNo}</TableCell>
+                  <TableCell className="font-medium">{highlightMatch(num.mobile, searchTerm)}</TableCell>
+                  <TableCell>{num.sum}</TableCell>
+                  <TableCell>
+                    <Badge variant={num.status === 'RTP' ? 'default' : 'destructive'} className={num.status === 'RTP' ? `bg-green-500/20 text-green-700` : `bg-red-500/20 text-red-700`}>{num.status}</Badge>
+                  </TableCell>
+                  <TableCell>{num.rtpDate ? format(num.rtpDate.toDate(), 'PPP') : 'N/A'}</TableCell>
+                  <TableCell>{num.billDate ? format(num.billDate.toDate(), 'PPP') : 'N/A'}</TableCell>
+                  <TableCell>
+                    <Badge variant={num.pdBill === 'Yes' ? 'secondary' : 'outline'}>{num.pdBill}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditClick(num)}>
+                          Edit Details
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              )
+              )
             ) : (
               <TableRow>
                 <TableCell colSpan={9} className="h-24 text-center">
@@ -339,17 +339,17 @@ export default function PostpaidPage() {
         totalItems={sortedNumbers.length}
       />
       {selectedNumber && (
-        <EditPostpaidDetailsModal 
-            isOpen={isEditModalOpen} 
-            onClose={() => setIsEditModalOpen(false)} 
-            number={selectedNumber}
+        <EditPostpaidDetailsModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          number={selectedNumber}
         />
       )}
       <BulkEditPostpaidDetailsModal
         isOpen={isBulkEditModalOpen}
         onClose={() => {
-            setIsBulkEditModalOpen(false);
-            setSelectedRows([]);
+          setIsBulkEditModalOpen(false);
+          setSelectedRows([]);
         }}
         selectedNumbers={selectedNumberRecords}
       />

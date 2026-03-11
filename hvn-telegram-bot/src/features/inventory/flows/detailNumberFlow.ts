@@ -46,32 +46,53 @@ export function registerDetailNumberFlow(router: CommandRouter) {
             if (!found) {
                 await bot.sendMessage(chatId, `❌ *Number Not Found*\n\nThe number \`${mobile}\` is not in our system.`, { parse_mode: 'Markdown' });
             } else {
-                let response = `ℹ️ *Details for ${mobile}*\n\n`;
-                response += `📍 *Current Location:* ${location}\n`;
+                let response = `ℹ️ *Details for* \`${mobile}\`\n`;
+                response += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+                response += `📍 *System Location:* \`${location}\`\n\n`;
 
                 if (location === 'Inventory') {
-                    response += `📋 *Status:* ${data.status}\n`;
-                    response += `📤 *Upload Status:* ${data.uploadStatus}\n`;
-                    response += `💰 *Purchase Price:* ₹${data.purchasePrice}\n`;
-                    response += `📈 *Sale Price:* ₹${data.salePrice}\n`;
-                    response += `👤 *Ownership:* ${data.ownershipType}\n`;
-                    response += `🏢 *Location Type:* ${data.locationType}\n`;
-                    response += `📍 *Current Location:* ${data.currentLocation}\n`;
-                    response += `👤 *Assigned To:* ${data.assignedTo}\n`;
+                    response += `📋 *Basic Info*\n`;
+                    response += `├ Status: *${data.status}*\n`;
+                    response += `├ Type: ${data.numberType} (${data.ownershipType})\n`;
+                    response += `└ Sum: *${data.sum}*\n\n`;
+
+                    response += `💰 *Pricing*\n`;
+                    response += `├ Purchase: ₹${data.purchasePrice}\n`;
+                    response += `└ Sale: *₹${data.salePrice}*\n\n`;
+
+                    response += `🏢 *Inventory Details*\n`;
+                    response += `├ Vendor: ${data.purchaseFrom}\n`;
+                    response += `├ Loc Type: ${data.locationType}\n`;
+                    response += `├ Current: ${data.currentLocation}\n`;
+                    response += `└ Assigned: ${data.assignedTo}\n\n`;
+
+                    if (data.notes) response += `📝 *Notes:* ${data.notes}\n\n`;
+
                 } else if (location === 'Sales') {
-                    response += `💰 *Sale Price:* ₹${data.salePrice}\n`;
-                    response += `👤 *Sold To:* ${data.soldTo}\n`;
-                    response += `📅 *Sale Date:* ${data.saleDate?.toDate()?.toLocaleDateString()}\n`;
-                    response += `📤 *Upload Status:* ${data.uploadStatus}\n`;
+                    const orig = data.originalNumberData || {};
+                    response += `💰 *Sale Info*\n`;
+                    response += `├ Sold To: *${data.soldTo}*\n`;
+                    response += `├ Sale Price: ₹${data.salePrice}\n`;
+                    response += `└ Date: ${data.saleDate?.toDate()?.toLocaleDateString()}\n\n`;
+
+                    response += `📋 *Original Details*\n`;
+                    response += `├ Type: ${orig.numberType}\n`;
+                    response += `└ Vendor: ${orig.purchaseFrom}\n\n`;
+
                 } else if (location === 'Prebooked') {
-                    response += `📅 *Prebooked On:* ${data.preBookingDate?.toDate()?.toLocaleDateString()}\n`;
-                    response += `📤 *Upload Status:* ${data.uploadStatus}\n`;
+                    response += `📅 *Booking Info*\n`;
+                    response += `├ Date: ${data.preBookingDate?.toDate()?.toLocaleDateString()}\n`;
+                    response += `└ Status: ${data.uploadStatus}\n\n`;
+
                 } else if (location === 'Deleted') {
-                    response += `🗑 *Deleted By:* ${data.deletedBy}\n`;
-                    response += `📅 *Deleted At:* ${data.deletedAt?.toDate()?.toLocaleDateString()}\n`;
-                    response += `📝 *Reason:* ${data.deletionReason}\n`;
+                    response += `🗑 *Deletion Info*\n`;
+                    response += `├ Date: ${data.deletedAt?.toDate()?.toLocaleDateString()}\n`;
+                    response += `├ By: ${data.deletedBy}\n`;
+                    response += `└ Reason: ${data.deletionReason}\n\n`;
                 }
 
+                response += `━━━━━━━━━━━━━━━━━━━━`;
                 await bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
             }
 

@@ -34,7 +34,7 @@ export default function SalesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [saleToCancel, setSaleToCancel] = useState<SaleRecord | null>(null);
-  const [sortConfig, setSortConfig] = useState<{ key: SortableColumn; direction: 'ascending' | 'descending' } | null>({ key: 'saleDate', direction: 'descending'});
+  const [sortConfig, setSortConfig] = useState<{ key: SortableColumn; direction: 'ascending' | 'descending' } | null>({ key: 'saleDate', direction: 'descending' });
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -46,8 +46,8 @@ export default function SalesPage() {
   }, [sales, role, user?.displayName]);
 
   const sortedSales = useMemo(() => {
-    let sortableItems = [...roleFilteredSales].filter(sale => 
-        sale.mobile && sale.mobile.toLowerCase().includes(searchTerm.toLowerCase())
+    let sortableItems = [...roleFilteredSales].filter(sale =>
+      sale.mobile && sale.mobile.toLowerCase().includes(searchTerm.toLowerCase())
     );
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
@@ -56,19 +56,19 @@ export default function SalesPage() {
 
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
-        
+
         let comparison = 0;
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-            comparison = aValue.localeCompare(bValue);
+          comparison = aValue.localeCompare(bValue);
         } else if (aValue instanceof Timestamp && bValue instanceof Timestamp) {
-            comparison = aValue.toMillis() - bValue.toMillis();
+          comparison = aValue.toMillis() - bValue.toMillis();
         } else {
-             if (aValue < bValue) {
-                comparison = -1;
-            }
-            if (aValue > bValue) {
-                comparison = 1;
-            }
+          if (aValue < bValue) {
+            comparison = -1;
+          }
+          if (aValue > bValue) {
+            comparison = 1;
+          }
         }
         return sortConfig.direction === 'ascending' ? comparison : -comparison;
       });
@@ -81,11 +81,11 @@ export default function SalesPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-  
+
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
@@ -94,7 +94,7 @@ export default function SalesPage() {
   const handleCancelClick = (sale: SaleRecord) => {
     setSaleToCancel(sale);
   };
-  
+
   const handleConfirmCancel = () => {
     if (saleToCancel) {
       cancelSale(saleToCancel.id);
@@ -103,7 +103,7 @@ export default function SalesPage() {
   };
 
   const handleSelectRow = (id: string) => {
-    setSelectedRows(prev => 
+    setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
     );
   };
@@ -154,13 +154,13 @@ export default function SalesPage() {
     }
     exportToCsv(selectedData, 'sales_export.csv');
     addActivity({
-        employeeName: user?.displayName || 'User',
-        action: 'Exported Data',
-        description: `Exported ${selectedData.length} selected sale(s) to CSV.`
+      employeeName: user?.displayName || 'User',
+      action: 'Exported Data',
+      description: `Exported ${selectedData.length} selected sale(s) to CSV.`
     });
     toast({
-        title: "Export Successful",
-        description: `${selectedData.length} selected sales have been exported to CSV.`,
+      title: "Export Successful",
+      description: `${selectedData.length} selected sales have been exported to CSV.`,
     });
     setSelectedRows([]);
   }
@@ -176,7 +176,7 @@ export default function SalesPage() {
     setSortConfig({ key, direction });
     setCurrentPage(1);
   };
-  
+
   const getSortIcon = (columnKey: SortableColumn) => {
     if (!sortConfig || sortConfig.key !== columnKey) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />;
@@ -189,10 +189,10 @@ export default function SalesPage() {
 
   const SortableHeader = ({ column, label }: { column: SortableColumn, label: string }) => (
     <TableHead>
-        <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
-            {label}
-            {getSortIcon(column)}
-        </Button>
+      <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
+        {label}
+        {getSortIcon(column)}
+      </Button>
     </TableHead>
   );
 
@@ -222,46 +222,46 @@ export default function SalesPage() {
         title="Sales"
         description="View and manage all sales records."
       />
-       <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
-          <div className="flex items-center gap-4 flex-wrap">
-             <Input 
-              placeholder="Search by mobile number..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="max-w-full sm:max-w-sm"
-            />
-             <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Items per page" />
-              </SelectTrigger>
-              <SelectContent>
-                {ITEMS_PER_PAGE_OPTIONS.map(val => (
-                   <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedRows.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                    <Button variant="outline" onClick={handleExportSelected} disabled={loading || selectedRows.length === 0}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export ({selectedRows.length})
-                    </Button>
-                </div>
-            )}
-          </div>
+      <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
+          <Input
+            placeholder="Search by mobile number..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="max-w-full sm:max-w-sm"
+          />
+          <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map(val => (
+                <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedRows.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" onClick={handleExportSelected} disabled={loading || selectedRows.length === 0}>
+                <Download className="mr-2 h-4 w-4" />
+                Export ({selectedRows.length})
+              </Button>
+            </div>
+          )}
         </div>
+      </div>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                    checked={isAllOnPageSelected}
-                    onCheckedChange={handleSelectAllOnPage}
-                    aria-label="Select all on this page"
+                  checked={isAllOnPageSelected}
+                  onCheckedChange={handleSelectAllOnPage}
+                  aria-label="Select all on this page"
                 />
               </TableHead>
               <SortableHeader column="srNo" label="Sr.No" />
@@ -276,55 +276,55 @@ export default function SalesPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-                <TableSpinner colSpan={9} />
+              <TableSpinner colSpan={9} />
             ) : paginatedSales.length > 0 ? (
-                paginatedSales.map((sale) => (
+              paginatedSales.map((sale) => (
                 <TableRow key={sale.id} data-state={selectedRows.includes(sale.id) && "selected"}>
-                    <TableCell>
-                        <Checkbox
-                            checked={selectedRows.includes(sale.id)}
-                            onCheckedChange={() => handleSelectRow(sale.id)}
-                            aria-label="Select row"
-                        />
-                    </TableCell>
-                    <TableCell>{sale.srNo}</TableCell>
-                    <TableCell className="font-medium">{highlightMatch(sale.mobile, searchTerm)}</TableCell>
-                    <TableCell>{sale.sum}</TableCell>
-                    <TableCell>{sale.soldTo}</TableCell>
-                    <TableCell>₹{sale.salePrice.toLocaleString()}</TableCell>
-                    <TableCell>{format(sale.saleDate.toDate(), 'PPP')}</TableCell>
-                     <TableCell>
-                         <Badge variant={sale.uploadStatus === 'Done' ? 'secondary' : 'outline'}>
-                            {sale.uploadStatus}
-                        </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem 
-                                  onClick={() => handleCancelClick(sale)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                    <Trash className="mr-2 h-4 w-4" />
-                                    Cancel Sale
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedRows.includes(sale.id)}
+                      onCheckedChange={() => handleSelectRow(sale.id)}
+                      aria-label="Select row"
+                    />
+                  </TableCell>
+                  <TableCell>{sale.srNo}</TableCell>
+                  <TableCell className="font-medium">{highlightMatch(sale.mobile, searchTerm)}</TableCell>
+                  <TableCell>{sale.sum}</TableCell>
+                  <TableCell>{sale.soldTo}</TableCell>
+                  <TableCell>₹{sale.salePrice.toLocaleString()}</TableCell>
+                  <TableCell>{format(sale.saleDate.toDate(), 'PPP')}</TableCell>
+                  <TableCell>
+                    <Badge variant={sale.uploadStatus === 'Done' ? 'secondary' : 'outline'}>
+                      {sale.uploadStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleCancelClick(sale)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash className="mr-2 h-4 w-4" />
+                          Cancel Sale
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-                ))
+              ))
             ) : (
-                <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                        {searchTerm ? `No sales records found for "${searchTerm}".` : "No sales records found."}
-                    </TableCell>
-                </TableRow>
+              <TableRow>
+                <TableCell colSpan={9} className="h-24 text-center">
+                  {searchTerm ? `No sales records found for "${searchTerm}".` : "No sales records found."}
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>

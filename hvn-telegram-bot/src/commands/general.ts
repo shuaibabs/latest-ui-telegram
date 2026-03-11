@@ -3,10 +3,10 @@ import { CommandRouter } from '../core/router/commandRouter';
 import TelegramBot from 'node-telegram-bot-api';
 
 export function registerGeneralCommands(router: CommandRouter) {
-    // Health check command - keep as global for now or restrict if needed
+    // Health check command
     router.register(/\/health/, (msg: TelegramBot.Message) => {
         const chatId = msg.chat.id;
-        router.bot.sendMessage(chatId, '✅ Bot is up and running!');
+        router.bot.sendMessage(chatId, `✅ Bot is up and running!\n\n📍 *Current Chat ID:* \`${chatId}\``, { parse_mode: 'Markdown' });
     });
 
     // Fallback handler for unrecognized commands

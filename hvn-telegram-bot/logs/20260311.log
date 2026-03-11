@@ -1,0 +1,82 @@
+20260311:230734.643: INFO: Firebase Admin SDK initialized successfully.
+20260311:230735.297: INFO: Bot is now running.
+20260311:230735.297: INFO: Starting the Telegram Server...
+20260311:230735.292: INFO: Starting the Telegram bot...
+20260311:230735.296: INFO: Bot has been initialized.
+20260311:230735.301: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260311:230735.302: INFO: Server is now running.
+20260311:230851.316: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260311:230902.521: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inv_search
+20260311:230915.338: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: search_type_must
+20260311:230935.403: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 9,1
+20260311:231300.798: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:231410.445: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:231459.813: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:231551.288: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:231639.194: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:231729.276: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:231848.888: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:231929.988: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: [No Text]
+20260311:232551.0002: INFO: Firebase Admin SDK initialized successfully.
+20260311:232551.520: INFO: Starting the Telegram bot...
+20260311:232551.523: INFO: Bot has been initialized.
+20260311:232551.524: INFO: Bot is now running.
+20260311:232551.524: INFO: Starting the Telegram Server...
+20260311:232551.528: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260311:232551.528: INFO: Server is now running.
+20260311:232606.830: INFO: Firebase Admin SDK initialized successfully.
+20260311:232607.396: INFO: Starting the Telegram bot...
+20260311:232607.400: INFO: Bot has been initialized.
+20260311:232607.400: INFO: Bot is now running.
+20260311:232607.401: INFO: Starting the Telegram Server...
+20260311:232607.404: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260311:232607.404: INFO: Server is now running.
+20260311:232636.661: INFO: Firebase Admin SDK initialized successfully.
+20260311:232637.171: INFO: Starting the Telegram bot...
+20260311:232637.173: INFO: Bot has been initialized.
+20260311:232637.174: INFO: Bot is now running.
+20260311:232637.175: INFO: Starting the Telegram Server...
+20260311:232637.178: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260311:232637.178: INFO: Server is now running.
+20260311:232649.261: INFO: Firebase Admin SDK initialized successfully.
+20260311:232649.812: INFO: Starting the Telegram bot...
+20260311:232649.814: INFO: Bot has been initialized.
+20260311:232649.815: INFO: Bot is now running.
+20260311:232649.815: INFO: Starting the Telegram Server...
+20260311:232649.819: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260311:232649.820: INFO: Server is now running.
+20260311:232742.372: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260311:232748.860: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inv_detail
+20260311:232800.058: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 1122112211
+20260311:232826.107: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260311:232831.052: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inv_search
+20260311:232833.710: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: search_type_adv
+20260311:232835.861: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: search_set_startWith
+20260311:232841.503: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 1
+20260311:232843.936: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: search_apply
+20260311:232913.145: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: start
+20260311:232917.535: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: inv_search
+20260311:232919.659: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: search_type_must
+20260311:232928.332: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: 1,2
+20260311:232953.135: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /id
+20260311:233033.652: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: health
+20260311:233039.970: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233041.767: INFO: [CALLBACK] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Data: manage_users_start
+20260311:233126.057: INFO: Firebase Admin SDK initialized successfully.
+20260311:233126.574: INFO: Starting the Telegram bot...
+20260311:233126.578: INFO: Bot is now running.
+20260311:233126.577: INFO: Bot has been initialized.
+20260311:233126.578: INFO: Starting the Telegram Server...
+20260311:233126.583: INFO: 🚀 [SHIELDED] Notification server active on Port 3000
+20260311:233126.583: INFO: Server is now running.
+20260311:233129.428: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /id
+20260311:233134.078: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233219.597: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233309.029: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233329.723: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233348.262: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233412.187: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233444.291: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:233500.589: INFO: [MESSAGE] From: MH Shuaib (@shuaibabs) [ID: 1336020357] | Text: /health
+20260311:235628.146: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]
+20260311:235919.918: INFO: 📡 Broadcast completed: ["Sent to Group: -5236238593","Mirrored to Master Channel: -1003692219115"]

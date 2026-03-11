@@ -37,8 +37,8 @@ export default function DealerPurchasesPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const sortedPurchases = useMemo(() => {
-    let sortableItems = [...dealerPurchases].filter(purchase => 
-        purchase.mobile && purchase.mobile.toLowerCase().includes(searchTerm.toLowerCase())
+    let sortableItems = [...dealerPurchases].filter(purchase =>
+      purchase.mobile && purchase.mobile.toLowerCase().includes(searchTerm.toLowerCase())
     );
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
@@ -47,17 +47,17 @@ export default function DealerPurchasesPage() {
 
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
-        
+
         let comparison = 0;
         if (typeof aValue === 'string' && typeof bValue === 'string') {
           comparison = aValue.localeCompare(bValue);
         } else {
-             if (aValue < bValue) {
-                comparison = -1;
-            }
-            if (aValue > bValue) {
-                comparison = 1;
-            }
+          if (aValue < bValue) {
+            comparison = -1;
+          }
+          if (aValue > bValue) {
+            comparison = 1;
+          }
         }
         return sortConfig.direction === 'ascending' ? comparison : -comparison;
       });
@@ -68,19 +68,19 @@ export default function DealerPurchasesPage() {
 
   const totalPages = Math.ceil(sortedPurchases.length / itemsPerPage);
   const paginatedPurchases = sortedPurchases.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
-  
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-  
+
   const handleItemsPerPageChange = (value: string) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
-  
+
   const requestSort = (key: SortableColumn) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -91,7 +91,7 @@ export default function DealerPurchasesPage() {
   };
 
   const handleSelectRow = (id: string) => {
-    setSelectedRows(prev => 
+    setSelectedRows(prev =>
       prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
     );
   };
@@ -144,20 +144,20 @@ export default function DealerPurchasesPage() {
     }
     exportToCsv(selectedData, 'dealer_purchases_export.csv');
     addActivity({
-        employeeName: user?.displayName || 'User',
-        action: 'Exported Data',
-        description: `Exported ${selectedData.length} selected dealer purchase(s) to CSV.`
+      employeeName: user?.displayName || 'User',
+      action: 'Exported Data',
+      description: `Exported ${selectedData.length} selected dealer purchase(s) to CSV.`
     });
     toast({
-        title: "Export Successful",
-        description: `${selectedData.length} selected dealer purchases have been exported to CSV.`,
+      title: "Export Successful",
+      description: `${selectedData.length} selected dealer purchases have been exported to CSV.`,
     });
     setSelectedRows([]);
   }
 
   const isAllOnPageSelected = paginatedPurchases.length > 0 && paginatedPurchases.every(p => selectedRows.includes(p.id));
 
-  
+
   const getSortIcon = (columnKey: SortableColumn) => {
     if (!sortConfig || sortConfig.key !== columnKey) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />;
@@ -170,10 +170,10 @@ export default function DealerPurchasesPage() {
 
   const SortableHeader = ({ column, label }: { column: SortableColumn, label: string }) => (
     <TableHead>
-        <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
-            {label}
-            {getSortIcon(column)}
-        </Button>
+      <Button variant="ghost" onClick={() => requestSort(column)} className="px-0 hover:bg-transparent">
+        {label}
+        {getSortIcon(column)}
+      </Button>
     </TableHead>
   );
 
@@ -204,80 +204,80 @@ export default function DealerPurchasesPage() {
         description="A list of numbers purchased from other dealers."
       >
         <div className="flex flex-col sm:flex-row items-center gap-2">
-            <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4"/>
-                Add New Number
-            </Button>
+          <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add New Number
+          </Button>
         </div>
       </PageHeader>
-       <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-4 flex-wrap">
-            <Input 
-              placeholder="Search by mobile number..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="max-w-full sm:max-w-sm"
-            />
-             <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
-              <SelectTrigger className="w-full sm:w-[120px]">
-                <SelectValue placeholder="Items per page" />
-              </SelectTrigger>
-              <SelectContent>
-                {ITEMS_PER_PAGE_OPTIONS.map(val => (
-                   <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedRows.length > 0 && (
-                <div className="flex items-center gap-2">
-                    {role === 'admin' && (
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                            <Button variant="destructive">
-                                <Trash className="mr-2 h-4 w-4" />
-                                Delete Selected ({selectedRows.length})
-                            </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                This action cannot be undone and will permanently delete {selectedRows.length} record(s).
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteSelected}>
-                                Yes, delete
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    )}
-                    <Button variant="outline" onClick={handleExportSelected}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export Selected ({selectedRows.length})
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          <Input
+            placeholder="Search by mobile number..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="max-w-full sm:max-w-sm"
+          />
+          <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-full sm:w-[120px]">
+              <SelectValue placeholder="Items per page" />
+            </SelectTrigger>
+            <SelectContent>
+              {ITEMS_PER_PAGE_OPTIONS.map(val => (
+                <SelectItem key={val} value={String(val)}>{val} / page</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedRows.length > 0 && (
+            <div className="flex items-center gap-2">
+              {role === 'admin' && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash className="mr-2 h-4 w-4" />
+                      Delete Selected ({selectedRows.length})
                     </Button>
-                </div>
-            )}
-          </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone and will permanently delete {selectedRows.length} record(s).
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteSelected}>
+                        Yes, delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              <Button variant="outline" onClick={handleExportSelected}>
+                <Download className="mr-2 h-4 w-4" />
+                Export Selected ({selectedRows.length})
+              </Button>
+            </div>
+          )}
         </div>
+      </div>
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-                <TableHead className="w-12">
-                   {role === 'admin' && (
-                    <Checkbox
-                        checked={isAllOnPageSelected}
-                        onCheckedChange={handleSelectAllOnPage}
-                        aria-label="Select all on this page"
-                    />
-                  )}
-                </TableHead>
+              <TableHead className="w-12">
+                {role === 'admin' && (
+                  <Checkbox
+                    checked={isAllOnPageSelected}
+                    onCheckedChange={handleSelectAllOnPage}
+                    aria-label="Select all on this page"
+                  />
+                )}
+              </TableHead>
               <SortableHeader column="srNo" label="Sr.No" />
               <SortableHeader column="mobile" label="Number" />
               <SortableHeader column="dealerName" label="Dealer Name" />
@@ -287,32 +287,32 @@ export default function DealerPurchasesPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-                <TableSpinner colSpan={6} />
+              <TableSpinner colSpan={6} />
             ) : paginatedPurchases.length > 0 ? (
-                paginatedPurchases.map((purchase) => (
+              paginatedPurchases.map((purchase) => (
                 <TableRow key={purchase.id} data-state={selectedRows.includes(purchase.id) && "selected"}>
-                    <TableCell>
-                       {role === 'admin' && (
-                        <Checkbox
-                            checked={selectedRows.includes(purchase.id)}
-                            onCheckedChange={() => handleSelectRow(purchase.id)}
-                            aria-label="Select row"
-                        />
-                       )}
-                    </TableCell>
-                    <TableCell>{purchase.srNo}</TableCell>
-                    <TableCell className="font-medium">{highlightMatch(purchase.mobile, searchTerm)}</TableCell>
-                    <TableCell>{purchase.dealerName}</TableCell>
-                    <TableCell>{purchase.sum}</TableCell>
-                    <TableCell>₹{purchase.price.toLocaleString()}</TableCell>
+                  <TableCell>
+                    {role === 'admin' && (
+                      <Checkbox
+                        checked={selectedRows.includes(purchase.id)}
+                        onCheckedChange={() => handleSelectRow(purchase.id)}
+                        aria-label="Select row"
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell>{purchase.srNo}</TableCell>
+                  <TableCell className="font-medium">{highlightMatch(purchase.mobile, searchTerm)}</TableCell>
+                  <TableCell>{purchase.dealerName}</TableCell>
+                  <TableCell>{purchase.sum}</TableCell>
+                  <TableCell>₹{purchase.price.toLocaleString()}</TableCell>
                 </TableRow>
-                ))
+              ))
             ) : (
-                <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                        {searchTerm ? `No dealer purchases found for "${searchTerm}".` : "No dealer purchases found."}
-                    </TableCell>
-                </TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  {searchTerm ? `No dealer purchases found for "${searchTerm}".` : "No dealer purchases found."}
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>

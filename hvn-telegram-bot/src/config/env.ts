@@ -17,6 +17,14 @@ const envSchema = z.object({
     TG_GROUP_ACTIVITY: z.string().optional(),
     TG_GROUP_USERS: z.string().optional(),
     TG_GROUP_PREBOOKING: z.string().optional(),
+    TG_GROUP_GLOBAL_HISTORY: z.string().optional(),
+    TG_GROUP_PARTNERS: z.string().optional(),
+    TG_GROUP_POSTPAID_NUMBERS: z.string().optional(),
+    TG_GROUP_SIM_LOCATIONS: z.string().optional(),
+    TG_GROUP_DEALER_PURCHASES: z.string().optional(),
+    TG_GROUP_WORK_REMINDERS: z.string().optional(),
+    TG_GROUP_COCP: z.string().optional(),
+    TG_GROUP_DELETED_NUMBERS: z.string().optional(),
     TG_MASTER_CHANNEL: z.string().optional(),
 });
 
@@ -35,6 +43,14 @@ export const GROUPS = {
     ACTIVITY: env.TG_GROUP_ACTIVITY || '',
     USERS: env.TG_GROUP_USERS || '',
     PREBOOKING: env.TG_GROUP_PREBOOKING || '',
+    GLOBAL_HISTORY: env.TG_GROUP_GLOBAL_HISTORY || '',
+    PARTNERS: env.TG_GROUP_PARTNERS || '',
+    POSTPAID_NUMBERS: env.TG_GROUP_POSTPAID_NUMBERS || '',
+    SIM_LOCATIONS: env.TG_GROUP_SIM_LOCATIONS || '',
+    DEALER_PURCHASES: env.TG_GROUP_DEALER_PURCHASES || '',
+    WORK_REMINDERS: env.TG_GROUP_WORK_REMINDERS || '',
+    COCP: env.TG_GROUP_COCP || '',
+    DELETED_NUMBERS: env.TG_GROUP_DELETED_NUMBERS || '',
     MASTER_CHANNEL: env.TG_MASTER_CHANNEL || '',
 };
 

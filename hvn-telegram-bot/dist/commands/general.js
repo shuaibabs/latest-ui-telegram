@@ -3,10 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerGeneralCommands = registerGeneralCommands;
 const env_1 = require("../config/env");
 function registerGeneralCommands(router) {
-    // Health check command - keep as global for now or restrict if needed
+    // Health check command
     router.register(/\/health/, (msg) => {
         const chatId = msg.chat.id;
-        router.bot.sendMessage(chatId, '✅ Bot is up and running!');
+        router.bot.sendMessage(chatId, `✅ Bot is up and running!\n\n📍 *Current Chat ID:* \`${chatId}\``, { parse_mode: 'Markdown' });
+    });
+    // Dedicated ID command
+    router.register(/\/id/, (msg) => {
+        const chatId = msg.chat.id;
+        router.bot.sendMessage(chatId, `📍 *Chat ID:* \`${chatId}\``, { parse_mode: 'Markdown' });
     });
     // Fallback handler for unrecognized commands
     router.setFallbackHandler((msg) => {

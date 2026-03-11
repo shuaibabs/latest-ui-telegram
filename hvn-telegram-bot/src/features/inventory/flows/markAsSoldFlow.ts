@@ -1,7 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { getSession, setSession, clearSession } from '../../../core/bot/sessionManager';
 import { logger } from '../../../core/logger/logger';
-import { validateNumbersExistence, markAsSoldBatch, getExistingVendors } from '../inventoryService';
+import { validateNumbersExistence, markAsSoldBatch, getExistingVendors, addNewVendor } from '../inventoryService';
 import { logActivity } from '../../activities/activityService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 
@@ -184,6 +184,9 @@ export function registerMarkAsSoldFlow(router: CommandRouter) {
 
         try {
             const creator = query.from.first_name + (query.from.last_name ? ' ' + query.from.last_name : '');
+
+            await addNewVendor(session.data.soldTo, query.from.id.toString());
+
             const result = await markAsSoldBatch(session.data.numbers, {
                 salePrice: session.data.salePrice,
                 soldTo: session.data.soldTo,

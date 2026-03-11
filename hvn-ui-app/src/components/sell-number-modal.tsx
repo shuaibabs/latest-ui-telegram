@@ -32,7 +32,7 @@ type SellNumberModalProps = {
 };
 
 export function SellNumberModal({ isOpen, onClose, number, onSell }: SellNumberModalProps) {
-  const { sellNumber, vendors } = useApp();
+  const { sellNumber, vendors, addSalesVendor } = useApp();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const vendorOptions = useMemo(() => {
@@ -47,9 +47,9 @@ export function SellNumberModal({ isOpen, onClose, number, onSell }: SellNumberM
       saleDate: new Date(),
     },
   });
-  
+
   React.useEffect(() => {
-    if(isOpen) {
+    if (isOpen) {
       form.reset({
         salePrice: number.salePrice ? Number(number.salePrice) : 0,
         soldTo: '',
@@ -58,7 +58,8 @@ export function SellNumberModal({ isOpen, onClose, number, onSell }: SellNumberM
     }
   }, [isOpen, number, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    await addSalesVendor(values.soldTo);
     if (onSell) {
       onSell(values);
     } else {
@@ -67,7 +68,7 @@ export function SellNumberModal({ isOpen, onClose, number, onSell }: SellNumberM
     onClose();
   }
 
-  const purchasePrice = number?.purchasePrice ?? number?.originalNumberData?.purchasePrice ?? 0;
+  const purchasePrice = number?.purchasePrice ?? (number as any)?.originalNumberData?.purchasePrice ?? 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -75,7 +76,7 @@ export function SellNumberModal({ isOpen, onClose, number, onSell }: SellNumberM
         <DialogHeader>
           <DialogTitle>Mark Number as Sold</DialogTitle>
           <DialogDescription>
-            Enter sales details for <span className="font-semibold">{number.mobile}</span>. 
+            Enter sales details for <span className="font-semibold">{number.mobile}</span>.
             Purchase price: <span className='font-semibold'>₹{purchasePrice.toLocaleString()}</span>.
           </DialogDescription>
         </DialogHeader>
@@ -94,65 +95,65 @@ export function SellNumberModal({ isOpen, onClose, number, onSell }: SellNumberM
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="soldTo"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                    <FormLabel>Sold To</FormLabel>
-                    <Combobox
-                        options={vendorOptions}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Select or type a name..."
-                        searchPlaceholder="Search or add new..."
-                        emptyMessage="No matching vendor found."
-                    />
+                  <FormLabel>Sold To</FormLabel>
+                  <Combobox
+                    options={vendorOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select or type a name..."
+                    searchPlaceholder="Search or add new..."
+                    emptyMessage="No matching vendor found."
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
-                control={form.control}
-                name="saleDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Sale Date</FormLabel>
-                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            if (date) field.onChange(date);
-                            setIsDatePickerOpen(false);
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              control={form.control}
+              name="saleDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Sale Date</FormLabel>
+                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          if (date) field.onChange(date);
+                          setIsDatePickerOpen(false);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </form>
         </Form>
         <DialogFooter>

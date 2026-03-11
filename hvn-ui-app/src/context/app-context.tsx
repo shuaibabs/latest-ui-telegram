@@ -20,6 +20,7 @@ import {
   GlobalHistoryRecord,
   LifecycleEvent,
   DeletedNumberRecord,
+  SalesVendorRecord,
 } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { isToday, isPast, isValid, parse, subDays } from 'date-fns';
@@ -112,7 +113,8 @@ type AppContextType = {
   activities: Activity[];
   users: User[];
   employees: string[];
-  vendors: string[];
+  vendors: string[]; // Keep for comboboxes
+  salesVendors: SalesVendorRecord[]; // Full records for management page
   dealerPurchases: DealerPurchaseRecord[];
   preBookings: PreBookingRecord[];
   payments: PaymentRecord[];
@@ -131,7 +133,7 @@ type AppContextType = {
   updateUploadStatus: (id: string, uploadStatus: 'Pending' | 'Done') => void;
   bulkUpdateUploadStatus: (numberIds: string[], uploadStatus: 'Pending' | 'Done') => void;
   markReminderDone: (id: string, note?: string) => void;
-  addActivity: (activity: Omit<Activity, 'id' | 'srNo' | 'timestamp' | 'createdBy'>, showToast?: boolean) => void;
+  addActivity: (activity: Omit<Activity, 'id' | 'srNo' | 'timestamp' | 'createdBy' | 'source' | 'groupName'>, showToast?: boolean) => void;
   assignNumbersToEmployee: (numberIds: string[], employeeName: string, location: { locationType: 'Store' | 'Employee' | 'Dealer'; currentLocation: string; }) => void;
   checkInNumber: (id: string) => void;
   sellNumber: (id: string, details: { salePrice: number; soldTo: string; saleDate: Date }) => void;
@@ -161,6 +163,9 @@ type AppContextType = {
   bulkUpdatePostpaidDetails: (numberIds: string[], details: { billDate: Date, pdBill: 'Yes' | 'No' }) => void;
   bulkMarkRemindersDone: (reminderIds: string[], note?: string) => void;
   bulkDeleteReminders: (reminderIds: string[]) => void;
+  addSalesVendor: (vendorName: string) => Promise<void>;
+  updateSalesVendor: (id: string, newName: string) => Promise<void>;
+  deleteSalesVendor: (id: string) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -181,6 +186,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [employees, setEmployees] = useState<string[]>([]);
   const [vendors, setVendors] = useState<string[]>([]);
+  const [salesVendors, setSalesVendors] = useState<SalesVendorRecord[]>([]);
 
   const [roleFilteredActivities, setRoleFilteredActivities] = useState<Activity[]>([]);
   const [seenActivitiesCount, setSeenActivitiesCount] = useState(0);
@@ -198,6 +204,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [deletedNumbersLoading, setDeletedNumbersLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [salesVendorsLoading, setSalesVendorsLoading] = useState(true);
 
   // Combined loading state: true if auth is loading OR if auth is done but any data is still loading.
   const loading =
@@ -211,7 +218,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       preBookingsLoading ||
       deletedNumbersLoading ||
       usersLoading ||
-      paymentsLoading
+      paymentsLoading ||
+      salesVendorsLoading
     ));
 
   const createLifecycleEvent = useCallback((action: string, description: string, performedBy: string): LifecycleEvent => ({
@@ -229,9 +237,75 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addActivity = useCallback((activity: Omit<Activity, 'id' | 'srNo' | 'timestamp' | 'createdBy' | 'source' | 'groupName'>, showToast = true) => {
     if (!db || !user) return;
 
-    // Determine the correct Telegram group for the action
-    const userActions = ['Updated User', 'Deleted User', 'Added User'];
-    const groupName = userActions.includes(activity.action) ? 'USERS' : 'ACTIVITY';
+    // Determine the correct Telegram group for the action based on the .env mappings
+    const actionGroups: Record<string, string> = {
+      // USERS
+      'Added User': 'USERS',
+      'Updated User': 'USERS',
+      'Deleted User': 'USERS',
+
+      // INVENTORY
+      'Added Number': 'INVENTORY',
+      'Bulk Added Numbers': 'INVENTORY',
+      'Updated Number': 'INVENTORY',
+      'Updated RTP Status': 'INVENTORY',
+      'Auto-updated to RTP': 'INVENTORY',
+      'Updated Upload Status': 'INVENTORY',
+      'Bulk Updated Upload Status': 'INVENTORY',
+      'Restored Number': 'INVENTORY',
+
+      // SALES
+      'Sold Number': 'SALES',
+      'Bulk Sold Numbers': 'SALES',
+      'Cancelled Sale': 'SALES',
+      'Sold Pre-Booked Number': 'SALES',
+      'Bulk Sold Pre-Booked': 'SALES',
+
+      // PREBOOKING
+      'Pre-Booked Numbers': 'PREBOOKING',
+      'Cancelled Pre-Booking': 'PREBOOKING',
+
+      // SIM_LOCATIONS
+      'Assigned Numbers': 'SIM_LOCATIONS',
+      'Checked In Number': 'SIM_LOCATIONS',
+      'Updated Number Location': 'SIM_LOCATIONS',
+
+      // DEALER_PURCHASES
+      'Added Dealer Purchase': 'DEALER_PURCHASES',
+      'Deleted Dealer Purchases': 'DEALER_PURCHASES',
+
+      // COCP
+      'Updated Safe Custody Date': 'COCP',
+      'Bulk Updated Safe Custody Date': 'COCP',
+
+      // POSTPAID
+      'Updated Postpaid Details': 'POSTPAID_NUMBERS',
+      'Bulk Updated Postpaid Details': 'POSTPAID_NUMBERS',
+
+      // DELETED_NUMBERS
+      'Deleted Numbers': 'DELETED_NUMBERS',
+
+      // PARTNERS
+      'Received Payment': 'PARTNERS',
+
+      // WORK_REMINDERS
+      'Added Reminder': 'WORK_REMINDERS',
+      'Deleted Reminder': 'WORK_REMINDERS',
+      'Assigned Reminders': 'WORK_REMINDERS',
+      'Marked Task Done': 'WORK_REMINDERS',
+      'Bulk Marked Tasks Done': 'WORK_REMINDERS',
+      'Bulk Deleted Reminders': 'WORK_REMINDERS',
+      'Safe Custody Date Arrived': 'WORK_REMINDERS',
+      'Auto-deleted reminders': 'WORK_REMINDERS',
+
+      // ACTIVITY
+      'Deleted Activities': 'ACTIVITY',
+      'Exported Data': 'ACTIVITY',
+      'Exported Sales Report': 'ACTIVITY',
+      'Imported Data': 'ACTIVITY',
+    };
+
+    const groupName = actionGroups[activity.action] || 'ACTIVITY';
 
     const newActivity: Omit<Activity, 'id'> = {
       ...activity,
@@ -350,6 +424,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDeletedNumbersLoading(false);
       setUsersLoading(false);
       setPaymentsLoading(false);
+      setSalesVendorsLoading(false);
       return;
     }
 
@@ -363,6 +438,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDeletedNumbersLoading(true);
     setUsersLoading(true);
     setPaymentsLoading(true);
+    setSalesVendorsLoading(true);
 
     const subscriptions: Unsubscribe[] = [];
     const collectionMappings: { name: string; setter: (data: any) => void; loader: (loading: boolean) => void }[] = [
@@ -379,6 +455,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setEmployees(data.map(u => u.displayName).sort())
         },
         loader: setUsersLoading
+      },
+      {
+        name: 'salesVendors', setter: (data: SalesVendorRecord[]) => {
+          setSalesVendors(data);
+          setVendors(data.map(v => v.name).sort());
+        },
+        loader: setSalesVendorsLoading
       },
     ];
 
@@ -2215,6 +2298,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addSalesVendor = async (vendorName: string) => {
+    if (!db || !user || !vendorName.trim()) return;
+    const vendorNameTrimmed = vendorName.trim();
+
+    // Check if vendor already exists (case-insensitive)
+    const exists = vendors.some(v => v.toLowerCase() === vendorNameTrimmed.toLowerCase());
+    if (exists) return; // Prevent duplicates
+
+    const newVendor = {
+      name: vendorNameTrimmed,
+      createdAt: serverTimestamp(),
+      createdBy: user.uid
+    };
+
+    try {
+      await addDoc(collection(db, 'salesVendors'), newVendor);
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Added Vendor',
+        description: `Added new vendor "${vendorNameTrimmed}".`
+      }, false);
+    } catch (serverError) {
+      console.error("Add sales vendor error:", serverError);
+      toast({ variant: "destructive", title: "Wait", description: "You don't have permission to add new vendors." });
+    }
+  };
+
+  const updateSalesVendor = async (id: string, newName: string) => {
+    if (!db || !user || role !== 'admin') {
+      toast({ variant: "destructive", title: "Permission Denied", description: "Only admins can edit vendors." });
+      return;
+    }
+    const docRef = doc(db, 'salesVendors', id);
+    try {
+      await updateDoc(docRef, { name: newName.trim() });
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Updated Vendor',
+        description: `Updated vendor name to "${newName.trim()}".`
+      });
+      toast({ title: "Updated", description: "Vendor renamed successfully." });
+    } catch (serverError) {
+      console.error("Update vendor error:", serverError);
+    }
+  };
+
+  const deleteSalesVendor = async (id: string) => {
+    if (!db || !user || role !== 'admin') {
+      toast({ variant: "destructive", title: "Permission Denied", description: "Only admins can delete vendors." });
+      return;
+    }
+    const docRef = doc(db, 'salesVendors', id);
+    try {
+      await deleteDoc(docRef);
+      addActivity({
+        employeeName: user.displayName || user.email || 'User',
+        action: 'Deleted Vendor',
+        description: `Deleted a vendor.`
+      });
+      toast({ title: "Deleted", description: "Vendor removed successfully." });
+    } catch (serverError) {
+      console.error("Delete vendor error:", serverError);
+    }
+  };
+
   // Filtered data is already prepared via useMemo hooks above
 
 
@@ -2227,6 +2375,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     users,
     employees,
     vendors,
+    salesVendors,
     dealerPurchases,
     preBookings: filteredPreBookings,
     payments,
@@ -2278,6 +2427,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     bulkUpdatePostpaidDetails,
     bulkMarkRemindersDone,
     bulkDeleteReminders,
+    addSalesVendor,
+    updateSalesVendor,
+    deleteSalesVendor,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
