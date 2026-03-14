@@ -16,9 +16,19 @@ export class Guard {
                 return;
             }
 
-            const allowed = await isAdmin(username);
-            if (!allowed) {
-                await this.handleDenial(bot, query, "admin");
+            try {
+                const allowed = await isAdmin(username);
+                if (!allowed) {
+                    await this.handleDenial(bot, query, "admin");
+                    return;
+                }
+            } catch (error) {
+                logger.error(`Error in adminOnlyCallback: ${error}`);
+                try {
+                    await bot.answerCallbackQuery(query.id, { text: "⚠️ Database service unavailable. Please try later.", show_alert: true });
+                } catch (ansErr) {
+                    logger.warn(`Failed to answer callback query in error path: ${ansErr}`);
+                }
                 return;
             }
 
@@ -38,9 +48,15 @@ export class Guard {
                 return;
             }
 
-            const allowed = await isAdmin(username);
-            if (!allowed) {
-                await this.handleDenialCommand(bot, msg, "admin");
+            try {
+                const allowed = await isAdmin(username);
+                if (!allowed) {
+                    await this.handleDenialCommand(bot, msg, "admin");
+                    return;
+                }
+            } catch (error) {
+                logger.error(`Error in adminOnlyCommand: ${error}`);
+                await bot.sendMessage(msg.chat.id, "⚠️ Database service unavailable. Please try later.");
                 return;
             }
 
@@ -60,9 +76,19 @@ export class Guard {
                 return;
             }
 
-            const isRegistered = await hasRole(username, 'employee'); // hasRole('employee') returns true for admins too
-            if (!isRegistered) {
-                await this.handleDenial(bot, query, "registered");
+            try {
+                const isRegistered = await hasRole(username, 'employee'); // hasRole('employee') returns true for admins too
+                if (!isRegistered) {
+                    await this.handleDenial(bot, query, "registered");
+                    return;
+                }
+            } catch (error) {
+                logger.error(`Error in registeredOnlyCallback: ${error}`);
+                try {
+                    await bot.answerCallbackQuery(query.id, { text: "⚠️ Database service unavailable. Please try later.", show_alert: true });
+                } catch (ansErr) {
+                    logger.warn(`Failed to answer callback query in error path: ${ansErr}`);
+                }
                 return;
             }
 
@@ -82,9 +108,15 @@ export class Guard {
                 return;
             }
 
-            const isRegistered = await hasRole(username, 'employee');
-            if (!isRegistered) {
-                await this.handleDenialCommand(bot, msg, "registered");
+            try {
+                const isRegistered = await hasRole(username, 'employee');
+                if (!isRegistered) {
+                    await this.handleDenialCommand(bot, msg, "registered");
+                    return;
+                }
+            } catch (error) {
+                logger.error(`Error in registeredOnlyCommand: ${error}`);
+                await bot.sendMessage(msg.chat.id, "⚠️ Database service unavailable. Please try later.");
                 return;
             }
 
@@ -93,29 +125,50 @@ export class Guard {
     }
 
     private static async handleDenial(bot: TelegramBot, query: TelegramBot.CallbackQuery, requiredRole: string) {
-        const username = query.from.username;
-        const usersRef = db.collection('users');
-        const querySnapshot = await usersRef.where('telegramUsername', '==', username).get();
+        try {
+            const username = query.from.username;
+            const usersRef = db.collection('users');
+            const querySnapshot = await usersRef.where('telegramUsername', '==', username).get();
 
-        const message = querySnapshot.empty
-            ? `❌ Access Denied: Your account (@${username}) is not registered.`
-            : `❌ Permission Denied: This action requires ${requiredRole} privileges.`;
+            const message = querySnapshot.empty
+                ? `❌ Access Denied: Your account (@${username}) is not registered.`
+                : `❌ Permission Denied: This action requires ${requiredRole} privileges.`;
 
-        await bot.answerCallbackQuery(query.id, { text: "Permission Denied", show_alert: true });
-        if (query.message) {
-            await bot.sendMessage(query.message.chat.id, message);
+            try {
+                await bot.answerCallbackQuery(query.id, { text: "Permission Denied", show_alert: true });
+            } catch (ansErr: any) {
+                if (!ansErr.message?.includes('query is too old')) {
+                    logger.warn(`Failed to answer permission denial callback: ${ansErr.message}`);
+                }
+            }
+
+            if (query.message) {
+                await bot.sendMessage(query.message.chat.id, message);
+            }
+        } catch (error) {
+            logger.error(`Error in handleDenial: ${error}`);
+            try {
+                await bot.answerCallbackQuery(query.id, { text: "❌ Permission check failed (Database error).", show_alert: true });
+            } catch (ansErr) {
+                logger.warn(`Failed to answer handleDenial error callback: ${ansErr}`);
+            }
         }
     }
 
     private static async handleDenialCommand(bot: TelegramBot, msg: TelegramBot.Message, requiredRole: string) {
-        const username = msg.from?.username;
-        const usersRef = db.collection('users');
-        const querySnapshot = await usersRef.where('telegramUsername', '==', username).get();
+        try {
+            const username = msg.from?.username;
+            const usersRef = db.collection('users');
+            const querySnapshot = await usersRef.where('telegramUsername', '==', username).get();
 
-        const message = querySnapshot.empty
-            ? `❌ Access Denied: Your account (@${username}) is not registered.`
-            : `❌ Permission Denied: This command requires ${requiredRole} privileges.`;
+            const message = querySnapshot.empty
+                ? `❌ Access Denied: Your account (@${username}) is not registered.`
+                : `❌ Permission Denied: This command requires ${requiredRole} privileges.`;
 
-        await bot.sendMessage(msg.chat.id, message);
+            await bot.sendMessage(msg.chat.id, message);
+        } catch (error) {
+            logger.error(`Error in handleDenialCommand: ${error}`);
+            await bot.sendMessage(msg.chat.id, "❌ Permission check failed due to a database error.");
+        }
     }
 }

@@ -12,6 +12,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bot_1 = require("./core/bot/bot");
 const server_1 = require("./core/server/server");
 const logger_1 = require("./core/logger/logger");
+// Global error handlers to prevent process exit on unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+    logger_1.logger.error(`[FATAL] Unhandled Rejection at: ${promise}, reason: ${(reason === null || reason === void 0 ? void 0 : reason.stack) || reason}`);
+});
+process.on('uncaughtException', (error) => {
+    logger_1.logger.error(`[FATAL] Uncaught Exception: ${error.stack || error}`);
+    // Optional: Allow some time for logging before exiting if it's truly critical
+    // but for Telegram bot, we usually want to try and stay alive.
+});
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {

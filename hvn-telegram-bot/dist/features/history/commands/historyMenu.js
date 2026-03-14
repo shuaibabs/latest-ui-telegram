@@ -29,7 +29,7 @@ exports.historyMenuCommand = historyMenuCommand;
 function registerHistoryMenu(router) {
     const bot = router.bot;
     // Command: /history
-    router.register(/^(?:\/history|history)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
+    router.register(/^(?:\/start|start)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
         var _a;
         yield (0, exports.historyMenuCommand)(bot, msg.chat.id, (_a = msg.from) === null || _a === void 0 ? void 0 : _a.username);
     }), [env_1.env.TG_GROUP_GLOBAL_HISTORY || '']);

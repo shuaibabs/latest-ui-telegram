@@ -35,7 +35,7 @@ exports.cocpMenuCommand = cocpMenuCommand;
 function registerCOCPMenu(router) {
     const bot = router.bot;
     // Command: /cocp
-    router.register(/^(?:\/cocp|cocp)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
+    router.register(/^(?:\/start|start)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
         var _a;
         yield (0, exports.cocpMenuCommand)(bot, msg.chat.id, (_a = msg.from) === null || _a === void 0 ? void 0 : _a.username);
     }), [env_1.env.TG_GROUP_COCP || '']);

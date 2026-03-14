@@ -35,7 +35,7 @@ exports.postpaidMenuCommand = postpaidMenuCommand;
 function registerPostpaidMenu(router) {
     const bot = router.bot;
     // Command: /postpaid
-    router.register(/^(?:\/postpaid|postpaid)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
+    router.register(/^(?:\/start|start)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
         var _a;
         yield (0, exports.postpaidMenuCommand)(bot, msg.chat.id, (_a = msg.from) === null || _a === void 0 ? void 0 : _a.username);
     }), [env_1.env.TG_GROUP_POSTPAID_NUMBERS || '']);

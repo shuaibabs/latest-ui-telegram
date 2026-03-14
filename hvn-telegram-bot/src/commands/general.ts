@@ -32,6 +32,12 @@ export function registerGeneralCommands(router: CommandRouter) {
             callbackData = 'cocp_start';
         } else if (chatId === env.TG_GROUP_GLOBAL_HISTORY) {
             callbackData = 'history_start';
+        } else if (chatId === env.TG_GROUP_SIM_LOCATIONS) {
+            callbackData = 'sim_locations_start';
+        } else if (chatId === env.TG_GROUP_DEALER_PURCHASES) {
+            callbackData = 'dealer_purchases_start';
+        } else if (chatId === env.TG_GROUP_DELETED_NUMBERS) {
+            callbackData = 'deleted_numbers_start';
         }
 
         router.bot.sendMessage(msg.chat.id, "😕 *Unrecognized Command*\n\nIt's not the correct command. Please use /start to see available options.", {

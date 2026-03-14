@@ -13,6 +13,9 @@ import { registerPartnersFeature } from '../../features/partners';
 import { registerPostpaidFeature } from '../../features/postpaid';
 import { registerCOCPFeature } from '../../features/cocp';
 import { registerHistoryFeature } from '../../features/history';
+import { registerLocationsFeature } from '../../features/locations';
+import { registerDealerFeature } from '../../features/dealer';
+import { registerDeletedFeature } from '../../features/deleted';
 
 let bot: TelegramBot | null = null;
 let commandRouter: CommandRouter | null = null;
@@ -35,6 +38,9 @@ export function initializeBot(): TelegramBot {
         registerPostpaidFeature(commandRouter);
         registerCOCPFeature(commandRouter);
         registerHistoryFeature(commandRouter);
+        registerLocationsFeature(commandRouter);
+        registerDealerFeature(commandRouter);
+        registerDeletedFeature(commandRouter);
 
         // Start listening for commands
         commandRouter.listen();

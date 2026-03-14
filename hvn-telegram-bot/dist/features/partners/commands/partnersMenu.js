@@ -33,7 +33,7 @@ exports.partnersMenuCommand = partnersMenuCommand;
 function registerPartnersMenu(router) {
     const bot = router.bot;
     // Command: /partners
-    router.register(/^(?:\/partners|partners)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
+    router.register(/^(?:\/start|start)$/i, (msg) => __awaiter(this, void 0, void 0, function* () {
         var _a;
         yield (0, exports.partnersMenuCommand)(bot, msg.chat.id, (_a = msg.from) === null || _a === void 0 ? void 0 : _a.username);
     }), [env_1.env.TG_GROUP_PARTNERS || '']);

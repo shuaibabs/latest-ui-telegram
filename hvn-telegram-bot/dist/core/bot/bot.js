@@ -19,6 +19,9 @@ const partners_1 = require("../../features/partners");
 const postpaid_1 = require("../../features/postpaid");
 const cocp_1 = require("../../features/cocp");
 const history_1 = require("../../features/history");
+const locations_1 = require("../../features/locations");
+const dealer_1 = require("../../features/dealer");
+const deleted_1 = require("../../features/deleted");
 let bot = null;
 let commandRouter = null;
 function initializeBot() {
@@ -37,6 +40,9 @@ function initializeBot() {
         (0, postpaid_1.registerPostpaidFeature)(commandRouter);
         (0, cocp_1.registerCOCPFeature)(commandRouter);
         (0, history_1.registerHistoryFeature)(commandRouter);
+        (0, locations_1.registerLocationsFeature)(commandRouter);
+        (0, dealer_1.registerDealerFeature)(commandRouter);
+        (0, deleted_1.registerDeletedFeature)(commandRouter);
         // Start listening for commands
         commandRouter.listen();
         // Generic error handling
