@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.globalHistoryRecordSchema = exports.paymentRecordSchema = exports.dealerPurchaseRecordSchema = exports.reminderSchema = exports.activitySchema = exports.saleRecordSchema = exports.numberRecordSchema = exports.lifecycleEventSchema = exports.userSchema = void 0;
+exports.salesVendorRecordSchema = exports.globalHistoryRecordSchema = exports.paymentRecordSchema = exports.dealerPurchaseRecordSchema = exports.reminderSchema = exports.activitySchema = exports.saleRecordSchema = exports.numberRecordSchema = exports.lifecycleEventSchema = exports.userSchema = void 0;
 const zod_1 = require("zod");
 const firestore_1 = require("firebase-admin/firestore");
 // Multi-environment Timestamp validation
@@ -125,4 +125,10 @@ exports.globalHistoryRecordSchema = zod_1.z.object({
         deletedAt: timestampSchema,
     }).optional(),
     history: zod_1.z.array(exports.lifecycleEventSchema).optional(),
+});
+exports.salesVendorRecordSchema = zod_1.z.object({
+    id: zod_1.z.string(),
+    name: zod_1.z.string(),
+    createdAt: timestampSchema,
+    createdBy: zod_1.z.string(),
 });

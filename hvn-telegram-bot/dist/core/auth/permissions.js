@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasRole = hasRole;
 exports.isAdmin = isAdmin;
+exports.getUserProfile = getUserProfile;
 const firebase_1 = require("../../config/firebase");
 const logger_1 = require("../logger/logger");
 /**
@@ -51,5 +52,25 @@ function hasRole(telegramUsername, role) {
 function isAdmin(telegramUsername) {
     return __awaiter(this, void 0, void 0, function* () {
         return hasRole(telegramUsername, 'admin');
+    });
+}
+/**
+ * Gets the full user profile from Firestore based on Telegram username.
+ */
+function getUserProfile(telegramUsername) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!telegramUsername)
+            return null;
+        try {
+            const usersRef = firebase_1.db.collection('users');
+            const querySnapshot = yield usersRef.where('telegramUsername', '==', telegramUsername.replace(/^@/, '')).get();
+            if (querySnapshot.empty)
+                return null;
+            return querySnapshot.docs[0].data();
+        }
+        catch (error) {
+            logger_1.logger.error(`Error fetching profile for @${telegramUsername}: ${error.message}`);
+            return null;
+        }
     });
 }

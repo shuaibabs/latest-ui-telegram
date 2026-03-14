@@ -15,7 +15,7 @@ export const prebookMenuCommand = async (bot: TelegramBot, chatId: number | stri
         [{ text: '📋 List Pre-booked Numbers', callback_data: 'prebook_list' }],
         [{ text: '🔍 Search Pre-bookings', callback_data: 'prebook_search' }],
         [{ text: 'ℹ️ Pre-booking Details', callback_data: 'prebook_detail' }],
-        [{ text: '❌ Cancel Pre-booking', callback_data: 'prebook_cancel' }]
+        [{ text: '❌ Cancel Pre-booking', callback_data: 'prebooking_cancel' }]
     ];
 
     await bot.sendMessage(chatId, "📖 *Pre-booking Management Menu*\n\nWelcome! Use the buttons below to manage pre-booked numbers.", {
@@ -55,7 +55,7 @@ export function registerPrebookMenu(router: CommandRouter) {
     }), [env.TG_GROUP_PREBOOKING || '']);
 
     // Cancel Pre-booking
-    router.registerCallback('prebook_cancel', Guard.registeredOnlyCallback(bot, async (query) => {
+    router.registerCallback('prebooking_cancel', Guard.registeredOnlyCallback(bot, async (query) => {
         await startCancelPrebookFlow(bot, query.message!.chat.id, query.from.username);
     }), [env.TG_GROUP_PREBOOKING || '']);
 }

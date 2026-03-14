@@ -13,6 +13,12 @@ const general_1 = require("../../commands/general");
 const users_1 = require("../../features/users");
 const activities_1 = require("../../features/activities");
 const inventory_1 = require("../../features/inventory");
+const sales_1 = require("../../features/sales");
+const prebooking_1 = require("../../features/prebooking");
+const partners_1 = require("../../features/partners");
+const postpaid_1 = require("../../features/postpaid");
+const cocp_1 = require("../../features/cocp");
+const history_1 = require("../../features/history");
 let bot = null;
 let commandRouter = null;
 function initializeBot() {
@@ -25,6 +31,12 @@ function initializeBot() {
         (0, users_1.registerUsersFeature)(commandRouter);
         (0, activities_1.registerActivitiesFeature)(commandRouter);
         (0, inventory_1.registerInventoryFeature)(commandRouter);
+        (0, sales_1.registerSalesFeature)(commandRouter);
+        (0, prebooking_1.registerPrebookingFeature)(commandRouter);
+        (0, partners_1.registerPartnersFeature)(commandRouter);
+        (0, postpaid_1.registerPostpaidFeature)(commandRouter);
+        (0, cocp_1.registerCOCPFeature)(commandRouter);
+        (0, history_1.registerHistoryFeature)(commandRouter);
         // Start listening for commands
         commandRouter.listen();
         // Generic error handling

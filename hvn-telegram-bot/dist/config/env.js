@@ -19,6 +19,14 @@ const envSchema = zod_1.z.object({
     TG_GROUP_ACTIVITY: zod_1.z.string().optional(),
     TG_GROUP_USERS: zod_1.z.string().optional(),
     TG_GROUP_PREBOOKING: zod_1.z.string().optional(),
+    TG_GROUP_GLOBAL_HISTORY: zod_1.z.string().optional(),
+    TG_GROUP_PARTNERS: zod_1.z.string().optional(),
+    TG_GROUP_POSTPAID_NUMBERS: zod_1.z.string().optional(),
+    TG_GROUP_SIM_LOCATIONS: zod_1.z.string().optional(),
+    TG_GROUP_DEALER_PURCHASES: zod_1.z.string().optional(),
+    TG_GROUP_WORK_REMINDERS: zod_1.z.string().optional(),
+    TG_GROUP_COCP: zod_1.z.string().optional(),
+    TG_GROUP_DELETED_NUMBERS: zod_1.z.string().optional(),
     TG_MASTER_CHANNEL: zod_1.z.string().optional(),
 });
 const parsed = envSchema.safeParse(process.env);
@@ -33,5 +41,13 @@ exports.GROUPS = {
     ACTIVITY: exports.env.TG_GROUP_ACTIVITY || '',
     USERS: exports.env.TG_GROUP_USERS || '',
     PREBOOKING: exports.env.TG_GROUP_PREBOOKING || '',
+    GLOBAL_HISTORY: exports.env.TG_GROUP_GLOBAL_HISTORY || '',
+    PARTNERS: exports.env.TG_GROUP_PARTNERS || '',
+    POSTPAID_NUMBERS: exports.env.TG_GROUP_POSTPAID_NUMBERS || '',
+    SIM_LOCATIONS: exports.env.TG_GROUP_SIM_LOCATIONS || '',
+    DEALER_PURCHASES: exports.env.TG_GROUP_DEALER_PURCHASES || '',
+    WORK_REMINDERS: exports.env.TG_GROUP_WORK_REMINDERS || '',
+    COCP: exports.env.TG_GROUP_COCP || '',
+    DELETED_NUMBERS: exports.env.TG_GROUP_DELETED_NUMBERS || '',
     MASTER_CHANNEL: exports.env.TG_MASTER_CHANNEL || '',
 };

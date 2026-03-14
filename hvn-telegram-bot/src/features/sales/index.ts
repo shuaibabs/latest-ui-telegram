@@ -3,6 +3,7 @@ import { registerSalesMenu } from './commands/salesMenu';
 import { registerListSalesFlow } from './flows/listSalesFlow';
 import { registerSearchSalesFlow } from './flows/searchSalesFlow';
 import { registerDetailSalesFlow } from './flows/detailSalesFlow';
+import { registerVendorSalesFlow } from './flows/vendorSalesFlow';
 import { registerCancelSaleFlow } from './flows/cancelSaleFlow';
 
 export function registerSalesFeature(router: CommandRouter) {
@@ -10,5 +11,6 @@ export function registerSalesFeature(router: CommandRouter) {
     registerListSalesFlow(router);
     registerSearchSalesFlow(router);
     registerDetailSalesFlow(router);
+    registerVendorSalesFlow(router);
     registerCancelSaleFlow(router);
 }

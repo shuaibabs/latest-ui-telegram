@@ -166,6 +166,7 @@ function registerMarkAsSoldFlow(router) {
             return;
         try {
             const creator = query.from.first_name + (query.from.last_name ? ' ' + query.from.last_name : '');
+            yield (0, inventoryService_1.addNewVendor)(session.data.soldTo, query.from.id.toString());
             const result = yield (0, inventoryService_1.markAsSoldBatch)(session.data.numbers, {
                 salePrice: session.data.salePrice,
                 soldTo: session.data.soldTo,

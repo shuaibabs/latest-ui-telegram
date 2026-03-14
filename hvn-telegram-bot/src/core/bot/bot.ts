@@ -9,6 +9,10 @@ import { registerActivitiesFeature } from '../../features/activities';
 import { registerInventoryFeature } from '../../features/inventory';
 import { registerSalesFeature } from '../../features/sales';
 import { registerPrebookingFeature } from '../../features/prebooking';
+import { registerPartnersFeature } from '../../features/partners';
+import { registerPostpaidFeature } from '../../features/postpaid';
+import { registerCOCPFeature } from '../../features/cocp';
+import { registerHistoryFeature } from '../../features/history';
 
 let bot: TelegramBot | null = null;
 let commandRouter: CommandRouter | null = null;
@@ -27,6 +31,10 @@ export function initializeBot(): TelegramBot {
         registerInventoryFeature(commandRouter);
         registerSalesFeature(commandRouter);
         registerPrebookingFeature(commandRouter);
+        registerPartnersFeature(commandRouter);
+        registerPostpaidFeature(commandRouter);
+        registerCOCPFeature(commandRouter);
+        registerHistoryFeature(commandRouter);
 
         // Start listening for commands
         commandRouter.listen();

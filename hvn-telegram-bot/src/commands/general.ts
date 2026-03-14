@@ -24,6 +24,14 @@ export function registerGeneralCommands(router: CommandRouter) {
             callbackData = 'sales_start';
         } else if (chatId === env.TG_GROUP_PREBOOKING) {
             callbackData = 'prebooking_start';
+        } else if (chatId === env.TG_GROUP_PARTNERS) {
+            callbackData = 'partners_start';
+        } else if (chatId === env.TG_GROUP_POSTPAID_NUMBERS) {
+            callbackData = 'postpaid_start';
+        } else if (chatId === env.TG_GROUP_COCP) {
+            callbackData = 'cocp_start';
+        } else if (chatId === env.TG_GROUP_GLOBAL_HISTORY) {
+            callbackData = 'history_start';
         }
 
         router.bot.sendMessage(msg.chat.id, "😕 *Unrecognized Command*\n\nIt's not the correct command. Please use /start to see available options.", {

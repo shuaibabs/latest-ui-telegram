@@ -33,6 +33,13 @@ export function registerDetailPrebookFlow(router: CommandRouter) {
         try {
             const isUserAdmin = await isAdmin(msg.from?.username);
             const profile = await getUserProfile(msg.from?.username);
+
+            if (!isUserAdmin && !profile?.displayName) {
+                await bot.sendMessage(chatId, "❌ *Profile Incomplete*\n\nYour profile does not have a display name set in the system. Please contact an administrator.", { parse_mode: 'Markdown' });
+                clearSession(chatId, 'prebookDetail');
+                return;
+            }
+
             const employeeName = isUserAdmin ? undefined : profile?.displayName;
 
             const pb = await getPrebookingDetails(mobile, employeeName);

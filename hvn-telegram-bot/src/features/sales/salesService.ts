@@ -1,8 +1,18 @@
 import { db } from '../../config/firebase';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { SaleRecord, NumberRecord } from '../../shared/types/data';
+import { SaleRecord, NumberRecord, SalesVendorRecord, PaymentRecord } from '../../shared/types/data';
 import { logger } from '../../core/logger/logger';
 import { calculateDigitalRoot } from '../../shared/utils/utils';
+
+export type VendorSalesStats = {
+    vendorName: string;
+    totalBilled: number;
+    totalPurchaseAmount: number;
+    profitLoss: number;
+    totalPaid: number;
+    amountRemaining: number;
+    totalRecords: number;
+};
 
 export type SalesSearchCriteria = {
     startWith?: string;
@@ -24,8 +34,9 @@ export const getSalesNumbers = async (employeeName?: string): Promise<SaleRecord
         if (employeeName) {
             query = query.where('originalNumberData.assignedTo', '==', employeeName);
         }
-        const snapshot = await query.orderBy('srNo', 'desc').get();
-        return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as SaleRecord));
+        const snapshot = await query.get();
+        const results = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as SaleRecord));
+        return results.sort((a: SaleRecord, b: SaleRecord) => (b.srNo || 0) - (a.srNo || 0));
     } catch (error: any) {
         logger.error(`Error in getSalesNumbers: ${error.message}`);
         throw error;
@@ -117,7 +128,7 @@ export const cancelSale = async (saleId: string, performedBy: string): Promise<b
         const historyEvent = {
             id: Math.random().toString(36).substring(2, 11),
             action: 'Sale Cancelled',
-            description: `Sale cancelled and moved back to inventory by ${performedBy} (BOT).`,
+            description: 'Sale cancelled and number returned to inventory.',
             timestamp: now,
             performedBy
         };
@@ -125,6 +136,8 @@ export const cancelSale = async (saleId: string, performedBy: string): Promise<b
         const originalData = saleData.originalNumberData;
         const numberData: any = {
             ...originalData,
+            assignedTo: 'Unassigned',
+            name: 'Unassigned',
             history: [...(originalData.history || []), historyEvent]
         };
 
@@ -153,6 +166,59 @@ export const cancelSale = async (saleId: string, performedBy: string): Promise<b
         return true;
     } catch (error: any) {
         logger.error(`Error in cancelSale: ${error.message}`);
+        throw error;
+    }
+};
+
+/**
+ * Fetches all sales vendors.
+ */
+export const getSalesVendors = async (): Promise<SalesVendorRecord[]> => {
+    try {
+        const snapshot = await db.collection('salesVendors').orderBy('name', 'asc').get();
+        return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as SalesVendorRecord));
+    } catch (error: any) {
+        logger.error(`Error in getSalesVendors: ${error.message}`);
+        throw error;
+    }
+};
+
+/**
+ * Calculates sales statistics for a specific vendor.
+ */
+export const getVendorSalesStats = async (vendorName: string): Promise<VendorSalesStats> => {
+    try {
+        // Fetch all sales for this vendor
+        const salesSnapshot = await db.collection('sales')
+            .where('soldTo', '==', vendorName)
+            .get();
+        
+        const sales = salesSnapshot.docs.map((doc: any) => doc.data() as SaleRecord);
+
+        // Fetch all payments for this vendor
+        const paymentsSnapshot = await db.collection('payments')
+            .where('vendorName', '==', vendorName)
+            .get();
+        
+        const payments = paymentsSnapshot.docs.map((doc: any) => doc.data() as PaymentRecord);
+
+        const totalBilled = sales.reduce((sum, s) => sum + (s.salePrice || 0), 0);
+        const totalPurchaseAmount = sales.reduce((sum, s) => sum + (s.originalNumberData?.purchasePrice || 0), 0);
+        const profitLoss = totalBilled - totalPurchaseAmount;
+        const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const amountRemaining = totalBilled - totalPaid;
+
+        return {
+            vendorName,
+            totalBilled,
+            totalPurchaseAmount,
+            profitLoss,
+            totalPaid,
+            amountRemaining,
+            totalRecords: sales.length
+        };
+    } catch (error: any) {
+        logger.error(`Error in getVendorSalesStats for ${vendorName}: ${error.message}`);
         throw error;
     }
 };

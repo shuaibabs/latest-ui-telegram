@@ -9,6 +9,11 @@ export async function startListSalesFlow(bot: TelegramBot, chatId: number, usern
         const isUserAdmin = await isAdmin(username);
         const profile = await getUserProfile(username);
         
+        if (!isUserAdmin && !profile?.displayName) {
+            await bot.sendMessage(chatId, "❌ *Profile Incomplete*\n\nYour profile does not have a display name set in the system. Please contact an administrator.", { parse_mode: 'Markdown' });
+            return;
+        }
+
         const employeeName = isUserAdmin ? undefined : profile?.displayName;
         const results = await getSalesNumbers(employeeName);
 

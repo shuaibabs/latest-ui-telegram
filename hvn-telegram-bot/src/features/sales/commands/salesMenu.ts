@@ -6,6 +6,7 @@ import { isAdmin } from '../../../core/auth/permissions';
 import { startListSalesFlow } from '../flows/listSalesFlow';
 import { startSearchSalesFlow } from '../flows/searchSalesFlow';
 import { startDetailSalesFlow } from '../flows/detailSalesFlow';
+import { startVendorSalesFlow } from '../flows/vendorSalesFlow';
 import { startCancelSaleFlow } from '../flows/cancelSaleFlow';
 
 export const salesMenuCommand = async (bot: TelegramBot, chatId: number | string, username?: string) => {
@@ -15,6 +16,7 @@ export const salesMenuCommand = async (bot: TelegramBot, chatId: number | string
         [{ text: '📋 List Sales Numbers', callback_data: 'sales_list' }],
         [{ text: '🔍 Search Sales', callback_data: 'sales_search' }],
         [{ text: 'ℹ️ Sale Details', callback_data: 'sales_detail' }],
+        [{ text: '📈 Sales by Vendor', callback_data: 'sales_vendor_list' }],
         [{ text: '❌ Cancel Sale', callback_data: 'sales_cancel' }]
     ];
 
@@ -52,6 +54,11 @@ export function registerSalesMenu(router: CommandRouter) {
     // Sale Details
     router.registerCallback('sales_detail', Guard.registeredOnlyCallback(bot, async (query) => {
         await startDetailSalesFlow(bot, query.message!.chat.id);
+    }), [env.TG_GROUP_SALES || '']);
+
+    // Sales by Vendor
+    router.registerCallback('sales_vendor_list', Guard.registeredOnlyCallback(bot, async (query) => {
+        await startVendorSalesFlow(bot, query.message!.chat.id);
     }), [env.TG_GROUP_SALES || '']);
 
     // Cancel Sale

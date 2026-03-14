@@ -23,8 +23,9 @@ export const getPrebookingNumbers = async (employeeName?: string): Promise<PreBo
         if (employeeName) {
             query = query.where('originalNumberData.assignedTo', '==', employeeName);
         }
-        const snapshot = await query.orderBy('srNo', 'desc').get();
-        return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as PreBookingRecord));
+        const snapshot = await query.get();
+        const results = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as PreBookingRecord));
+        return results.sort((a: PreBookingRecord, b: PreBookingRecord) => (b.srNo || 0) - (a.srNo || 0));
     } catch (error: any) {
         logger.error(`Error in getPrebookingNumbers: ${error.message}`);
         throw error;
@@ -115,8 +116,8 @@ export const cancelPrebooking = async (prebookingId: string, performedBy: string
         // Prepare history cycle
         const historyEvent = {
             id: Math.random().toString(36).substring(2, 11),
-            action: 'Pre-Booking Cancelled',
-            description: `Pre-booking cancelled and moved back to inventory by ${performedBy} (BOT).`,
+            action: 'Pre-booking Cancelled',
+            description: 'Pre-booking was cancelled.',
             timestamp: now,
             performedBy
         };

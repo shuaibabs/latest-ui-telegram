@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.advancedSearchNumbers = exports.getNumberDetails = exports.getExistingVendors = exports.prebookNumbersBatch = exports.markAsSoldBatch = exports.getAllNumbers = exports.softDeleteNumbers = exports.assignNumbersToUser = exports.updateNumbersStatusBatch = exports.validateNumbersExistence = exports.addInventoryNumbers = exports.isMobileNumberDuplicate = void 0;
+exports.advancedSearchNumbers = exports.getNumberDetails = exports.addNewVendor = exports.getExistingVendors = exports.prebookNumbersBatch = exports.markAsSoldBatch = exports.getAllNumbers = exports.softDeleteNumbers = exports.assignNumbersToUser = exports.updateNumbersStatusBatch = exports.validateNumbersExistence = exports.addInventoryNumbers = exports.isMobileNumberDuplicate = void 0;
 const firebase_1 = require("../../config/firebase");
 const firestore_1 = require("firebase-admin/firestore");
 const utils_1 = require("../../shared/utils/utils");
@@ -326,19 +326,37 @@ const prebookNumbersBatch = (mobiles, createdByUid, creatorName) => __awaiter(vo
 });
 exports.prebookNumbersBatch = prebookNumbersBatch;
 /**
- * Gets unique vendors from the 'sales' collection.
+ * Gets unique vendors from the 'salesVendors' collection.
  */
 const getExistingVendors = () => __awaiter(void 0, void 0, void 0, function* () {
-    const snapshot = yield firebase_1.db.collection('sales').select('soldTo').get();
+    const snapshot = yield firebase_1.db.collection('salesVendors').select('name').get();
     const vendorsSet = new Set();
     snapshot.docs.forEach(doc => {
-        const soldTo = doc.data().soldTo;
-        if (soldTo)
-            vendorsSet.add(soldTo);
+        const name = doc.data().name;
+        if (name)
+            vendorsSet.add(name);
     });
     return Array.from(vendorsSet).sort();
 });
 exports.getExistingVendors = getExistingVendors;
+/**
+ * Adds a new vendor to the 'salesVendors' collection if it doesn't already exist.
+ */
+const addNewVendor = (vendorName, createdByUid) => __awaiter(void 0, void 0, void 0, function* () {
+    const trimmedName = vendorName.trim();
+    if (!trimmedName)
+        return;
+    const existing = yield (0, exports.getExistingVendors)();
+    const exists = existing.some(v => v.toLowerCase() === trimmedName.toLowerCase());
+    if (!exists) {
+        yield firebase_1.db.collection('salesVendors').add({
+            name: trimmedName,
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+            createdBy: createdByUid
+        });
+    }
+});
+exports.addNewVendor = addNewVendor;
 /**
  * Searches for a number across all relevant collections to provide full history/details.
  */
