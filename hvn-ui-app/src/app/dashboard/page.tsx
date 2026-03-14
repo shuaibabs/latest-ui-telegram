@@ -14,17 +14,10 @@ export default function DashboardPage() {
   const { user, role } = useAuth();
   const { numbers, reminders, sales, preBookings } = useApp();
 
-  const roleFilteredSales = useMemo(() => {
-    if (role === 'admin') {
-      return sales;
-    }
-    return sales.filter(sale => sale.originalNumberData?.assignedTo === user?.displayName);
-  }, [sales, role, user?.displayName]);
-
   const rtpCount = numbers.filter(n => n.status === "RTP").length;
   const nonRtpCount = numbers.length - rtpCount;
   const pendingUploads = numbers.filter(n => n.uploadStatus === 'Pending').length;
-  const salesCount = roleFilteredSales.length;
+  const salesCount = sales.length;
   const preBookingsCount = preBookings.length;
 
   return (

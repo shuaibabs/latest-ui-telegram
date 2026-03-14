@@ -42,12 +42,8 @@ export default function PostpaidPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const postpaidNumbers = useMemo(() => {
-    const filtered = numbers.filter(num => num.numberType === 'Postpaid');
-    if (role === 'admin') {
-      return filtered;
-    }
-    return filtered.filter(num => num.assignedTo === user?.displayName);
-  }, [numbers, role, user?.displayName]);
+    return numbers.filter(num => num.numberType === 'Postpaid');
+  }, [numbers]);
 
   const sortedNumbers = useMemo(() => {
     let sortableItems = [...postpaidNumbers].filter(num =>

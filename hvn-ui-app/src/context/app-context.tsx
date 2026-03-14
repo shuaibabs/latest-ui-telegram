@@ -465,17 +465,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
     ];
 
-    if (role === 'admin') {
-      collectionMappings.push({ name: 'deletedNumbers', setter: setDeletedNumbers, loader: setDeletedNumbersLoading });
-    } else {
-      // For non-admins, clear deletedNumbers and set loading to false
-      setDeletedNumbers([]);
-      setDeletedNumbersLoading(false);
-    }
+    collectionMappings.push({ name: 'deletedNumbers', setter: setDeletedNumbers, loader: setDeletedNumbersLoading });
 
     collectionMappings.forEach(({ name, setter, loader }) => {
       const collectionRef = collection(db, name);
-      const q = query(collectionRef);
+      let q = query(collectionRef);
+
+      // Apply role-based filtering for employees
+      if (role === 'employee') {
+        // CRITICAL: Don't subscribe to anything for employees until profile is loaded
+        // This prevents "leaking" all data or showing blank screens due to missing filters
+        if (!profile?.displayName) return;
+
+        if (name === 'numbers') {
+          q = query(collectionRef, where("assignedTo", "==", profile.displayName));
+        } else if (['sales', 'prebookings', 'deletedNumbers'].includes(name)) {
+          q = query(collectionRef, where("originalNumberData.assignedTo", "==", profile.displayName));
+        } else if (name === 'reminders') {
+          q = query(collectionRef, where("assignedTo", "array-contains", profile.displayName));
+        } else if (name === 'dealerPurchases') {
+          q = query(collectionRef, where("createdBy", "==", user.uid));
+        }
+      }
 
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const data = mapSnapshotToData(querySnapshot);
@@ -497,38 +508,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [db, user, role, profile]);
 
-  const filteredNumbers = useMemo(() => {
-    if (role === 'admin') return numbers;
-    return numbers.filter(n => n.assignedTo === profile?.displayName);
-  }, [numbers, role, profile]);
-
-  const filteredSales = useMemo(() => {
-    if (role === 'admin') return sales;
-    return sales.filter(s => s.originalNumberData?.assignedTo === profile?.displayName);
-  }, [sales, role, profile]);
-
-  const filteredPreBookings = useMemo(() => {
-    if (role === 'admin') return preBookings;
-    return preBookings.filter(p => p.originalNumberData?.assignedTo === profile?.displayName);
-  }, [preBookings, role, profile]);
-
-  const filteredDeletedNumbers = useMemo(() => {
-    if (role === 'admin') return deletedNumbers;
-    return deletedNumbers.filter(d => d.originalNumberData?.assignedTo === profile?.displayName);
-  }, [deletedNumbers, role, profile]);
-
-  const filteredDealerPurchases = useMemo(() => {
-    return dealerPurchases;
-  }, [dealerPurchases]);
-
-  const filteredReminders = useMemo(() => {
-    if (role === 'admin') return reminders;
-    return (reminders || []).filter(r => Array.isArray(r.assignedTo) && r.assignedTo.includes(profile?.displayName || ''));
-  }, [reminders, role, profile]);
-
-  const filteredActivities = useMemo(() => {
-    return activities;
-  }, [activities]);
+  // Centralized Filtered Data (already filtered by Firestore queries for employees)
+  const filteredNumbers = useMemo(() => numbers, [numbers]);
+  const filteredSales = useMemo(() => sales, [sales]);
+  const filteredPreBookings = useMemo(() => preBookings, [preBookings]);
+  const filteredDeletedNumbers = useMemo(() => deletedNumbers, [deletedNumbers]);
+  const filteredReminders = useMemo(() => reminders, [reminders]);
+  const filteredPayments = useMemo(() => payments, [payments]);
+  const filteredDealerPurchases = useMemo(() => dealerPurchases, [dealerPurchases]);
+  const filteredActivities = useMemo(() => activities, [activities]);
 
   // Derive globalHistory from filtered data to ensure consistent visibility
   const globalHistory = useMemo<GlobalHistoryRecord[]>(() => {
@@ -548,7 +536,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       history: num.history,
     }));
 
-    const salesHistory: GlobalHistoryRecord[] = sales.map(sale => ({
+    const salesHistory: GlobalHistoryRecord[] = filteredSales.map(sale => ({
       id: `sales-${sale.id}`,
       mobile: sale.mobile,
       rtpStatus: sale.originalNumberData?.status || 'N/A',
@@ -567,7 +555,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       history: sale.originalNumberData?.history,
     }));
 
-    const preBookingHistory: GlobalHistoryRecord[] = preBookings.map(pb => ({
+    const preBookingHistory: GlobalHistoryRecord[] = filteredPreBookings.map(pb => ({
       id: `prebookings-${pb.id}`,
       mobile: pb.mobile,
       rtpStatus: pb.originalNumberData?.status || 'N/A',
@@ -581,7 +569,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       history: pb.originalNumberData?.history,
     }));
 
-    const dealerPurchaseHistory: GlobalHistoryRecord[] = dealerPurchases.map(dp => ({
+    const dealerPurchaseHistory: GlobalHistoryRecord[] = filteredDealerPurchases.map(dp => ({
       id: `dealerPurchases-${dp.id}`,
       mobile: dp.mobile,
       rtpStatus: 'N/A',
@@ -641,7 +629,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
-    if (!db || numbersLoading || authLoading || !user) {
+    if (!db || numbersLoading || authLoading || !user || role !== 'admin') {
       return;
     }
 
@@ -690,7 +678,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const createSystemReminders = async () => {
-      if (loading || !user || !db || !users.length || !reminders) return;
+      if (loading || !user || !db || !users.length || !reminders || role !== 'admin') return;
 
       const adminUsers = users.filter(u => u.role === 'admin').map(u => u.displayName);
       if (adminUsers.length === 0) return;

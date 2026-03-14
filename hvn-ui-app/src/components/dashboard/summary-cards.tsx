@@ -11,18 +11,11 @@ export function SummaryCards() {
   const { user, role } = useAuth();
   const { numbers, sales, preBookings } = useApp();
 
-  const roleFilteredSales = useMemo(() => {
-    if (role === 'admin') {
-      return sales;
-    }
-    return sales.filter(sale => sale.originalNumberData?.assignedTo === user?.displayName);
-  }, [sales, role, user?.displayName]);
-
   const totalNumbers = numbers.length;
   const rtpNumbers = numbers.filter(n => n.status === 'RTP').length;
   const nonRtpNumbers = totalNumbers - rtpNumbers;
   const pendingUploads = numbers.filter(n => n.uploadStatus === 'Pending').length;
-  const totalSales = roleFilteredSales.length;
+  const totalSales = sales.length;
   const totalPreBookings = preBookings.length;
 
 

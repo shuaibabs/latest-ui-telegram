@@ -39,25 +39,17 @@ export default function ManageSalesPage() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const roleFilteredSales = useMemo(() => {
-    if (role === 'admin') {
-      return sales;
-    }
-    return sales.filter(sale => sale.originalNumberData?.assignedTo === user?.displayName);
-  }, [sales, role, user?.displayName]);
-
-
   const soldToOptions = useMemo(() => {
-    const allVendors = roleFilteredSales.map(s => s.soldTo).filter(Boolean);
+    const allVendors = sales.map(s => s.soldTo).filter(Boolean);
     return [...new Set(['all', ...allVendors])];
-  }, [roleFilteredSales]);
+  }, [sales]);
 
   const filteredSales = useMemo(() => {
-    return roleFilteredSales.filter(sale =>
+    return sales.filter(sale =>
       (soldToFilter === 'all' || sale.soldTo === soldToFilter) &&
       (sale.mobile && sale.mobile.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [roleFilteredSales, soldToFilter, searchTerm]);
+  }, [sales, soldToFilter, searchTerm]);
 
   const { totalPurchaseAmount, totalSaleAmount } = useMemo(() => {
     return filteredSales.reduce((acc, sale) => {

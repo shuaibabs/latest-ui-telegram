@@ -38,15 +38,8 @@ export default function SalesPage() {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const roleFilteredSales = useMemo(() => {
-    if (role === 'admin') {
-      return sales;
-    }
-    return sales.filter(sale => sale.originalNumberData?.assignedTo === user?.displayName);
-  }, [sales, role, user?.displayName]);
-
   const sortedSales = useMemo(() => {
-    let sortableItems = [...roleFilteredSales].filter(sale =>
+    let sortableItems = [...sales].filter(sale =>
       sale.mobile && sale.mobile.toLowerCase().includes(searchTerm.toLowerCase())
     );
     if (sortConfig !== null) {
@@ -74,7 +67,7 @@ export default function SalesPage() {
       });
     }
     return sortableItems;
-  }, [roleFilteredSales, sortConfig, searchTerm]);
+  }, [sales, sortConfig, searchTerm]);
 
   const totalPages = Math.ceil(sortedSales.length / itemsPerPage);
   const paginatedSales = sortedSales.slice(

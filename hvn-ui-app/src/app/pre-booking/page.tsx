@@ -41,15 +41,8 @@ export default function PreBookingPage() {
   const [selectedPreBooking, setSelectedPreBooking] = useState<PreBookingRecord | null>(null);
   const [preBookingToCancel, setPreBookingToCancel] = useState<PreBookingRecord | null>(null);
 
-  const roleFilteredPreBookings = useMemo(() => {
-    if (role === 'admin') {
-      return preBookings;
-    }
-    return preBookings.filter(pb => pb.originalNumberData?.assignedTo === user?.displayName);
-  }, [preBookings, role, user?.displayName]);
-
   const sortedAndFilteredPreBookings = useMemo(() => {
-    let filtered = roleFilteredPreBookings.filter(pb => 
+    let filtered = preBookings.filter(pb => 
       (pb.mobile && pb.mobile.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     
@@ -65,7 +58,7 @@ export default function PreBookingPage() {
     });
 
     return filtered;
-  }, [roleFilteredPreBookings, searchTerm]);
+  }, [preBookings, searchTerm]);
 
   const totalPages = Math.ceil(sortedAndFilteredPreBookings.length / itemsPerPage);
   const paginatedPreBookings = sortedAndFilteredPreBookings.slice(

@@ -44,12 +44,8 @@ export default function CocpPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const cocpNumbers = useMemo(() => {
-    const filtered = numbers.filter(num => num.numberType === 'COCP');
-    if (role === 'admin') {
-      return filtered;
-    }
-    return filtered.filter(num => num.assignedTo === user?.displayName);
-  }, [numbers, role, user?.displayName]);
+    return numbers.filter(num => num.numberType === 'COCP');
+  }, [numbers]);
 
   const sortedNumbers = useMemo(() => {
     let sortableItems = [...cocpNumbers].filter(num =>

@@ -32,24 +32,17 @@ export default function SimLocationsPage() {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const roleFilteredNumbers = useMemo(() => {
-    if (role === 'admin') {
-      return numbers;
-    }
-    return (numbers || []).filter(n => n.assignedTo === user?.displayName);
-  }, [numbers, role, user?.displayName]);
-
   const currentLocationOptions = useMemo(() => {
-    const allLocations = roleFilteredNumbers.map(n => n.currentLocation).filter(Boolean);
+    const allLocations = numbers.map(n => n.currentLocation).filter(Boolean);
     return [...new Set(['all', ...allLocations])];
-  }, [roleFilteredNumbers]);
+  }, [numbers]);
 
   const filteredNumbers = useMemo(() => {
-    return roleFilteredNumbers
+    return numbers
       .filter(num => locationTypeFilter === 'all' || num.locationType === locationTypeFilter)
       .filter(num => currentLocationFilter === 'all' || num.currentLocation === currentLocationFilter)
       .filter(num => num.mobile && num.mobile.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [roleFilteredNumbers, locationTypeFilter, currentLocationFilter, searchTerm]);
+  }, [numbers, locationTypeFilter, currentLocationFilter, searchTerm]);
 
   const totalPages = Math.ceil(filteredNumbers.length / itemsPerPage);
   const paginatedNumbers = filteredNumbers.slice(

@@ -1,0 +1,158 @@
+import { db } from '../../config/firebase';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { SaleRecord, NumberRecord } from '../../shared/types/data';
+import { logger } from '../../core/logger/logger';
+import { calculateDigitalRoot } from '../../shared/utils/utils';
+
+export type SalesSearchCriteria = {
+    startWith?: string;
+    anywhere?: string;
+    endWith?: string;
+    mustContain?: string;
+    notContain?: string;
+    onlyContain?: string;
+    total?: string;
+    sum?: string;
+};
+
+/**
+ * Gets sales numbers with optional employee filtering.
+ */
+export const getSalesNumbers = async (employeeName?: string): Promise<SaleRecord[]> => {
+    try {
+        let query: any = db.collection('sales');
+        if (employeeName) {
+            query = query.where('originalNumberData.assignedTo', '==', employeeName);
+        }
+        const snapshot = await query.orderBy('srNo', 'desc').get();
+        return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as SaleRecord));
+    } catch (error: any) {
+        logger.error(`Error in getSalesNumbers: ${error.message}`);
+        throw error;
+    }
+};
+
+/**
+ * Advanced search for sales numbers.
+ */
+export const searchSalesNumbers = async (criteria: SalesSearchCriteria, employeeName?: string): Promise<SaleRecord[]> => {
+    try {
+        let query: any = db.collection('sales');
+        if (employeeName) {
+            query = query.where('originalNumberData.assignedTo', '==', employeeName);
+        }
+
+        const snapshot = await query.get();
+        let sales = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as SaleRecord));
+
+        const { startWith, endWith, anywhere, mustContain, notContain, onlyContain, total, sum } = criteria;
+
+        return sales.filter((sale: SaleRecord) => {
+            const mobile = sale.mobile;
+            if (startWith && !mobile.startsWith(startWith)) return false;
+            if (endWith && !mobile.endsWith(endWith)) return false;
+            if (anywhere && !mobile.includes(anywhere)) return false;
+
+            if (mustContain) {
+                const digits = mustContain.split(',').map(d => d.trim()).filter(Boolean);
+                if (!digits.every(d => mobile.includes(d))) return false;
+            }
+
+            if (notContain) {
+                const digits = notContain.split(',').map(d => d.trim()).filter(Boolean);
+                if (digits.some(d => mobile.includes(d))) return false;
+            }
+
+            if (onlyContain) {
+                const allowed = new Set(onlyContain.split(''));
+                if (!mobile.split('').every(d => allowed.has(d))) return false;
+            }
+
+            if (total) {
+                const simpleSum = mobile.split('').map(Number).reduce((a, b) => a + b, 0);
+                if (simpleSum.toString() !== total) return false;
+            }
+
+            if (sum && sale.sum.toString() !== sum) return false;
+
+            return true;
+        });
+    } catch (error: any) {
+        logger.error(`Error in searchSalesNumbers: ${error.message}`);
+        throw error;
+    }
+};
+
+/**
+ * Gets details for a specific sales number.
+ */
+export const getSaleDetails = async (mobile: string, employeeName?: string): Promise<SaleRecord | null> => {
+    try {
+        let query: any = db.collection('sales').where('mobile', '==', mobile);
+        if (employeeName) {
+            query = query.where('originalNumberData.assignedTo', '==', employeeName);
+        }
+        const snapshot = await query.limit(1).get();
+        if (snapshot.empty) return null;
+        return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as SaleRecord;
+    } catch (error: any) {
+        logger.error(`Error in getSaleDetails: ${error.message}`);
+        throw error;
+    }
+};
+
+/**
+ * Cancels a sale and moves the number back to inventory.
+ */
+export const cancelSale = async (saleId: string, performedBy: string): Promise<boolean> => {
+    try {
+        const saleRef = db.collection('sales').doc(saleId);
+        const saleDoc = await saleRef.get();
+        if (!saleDoc.exists) return false;
+
+        const saleData = saleDoc.data() as SaleRecord;
+        const now = Timestamp.now();
+
+        // Prepare history cycle
+        const historyEvent = {
+            id: Math.random().toString(36).substring(2, 11),
+            action: 'Sale Cancelled',
+            description: `Sale cancelled and moved back to inventory by ${performedBy} (BOT).`,
+            timestamp: now,
+            performedBy
+        };
+
+        const originalData = saleData.originalNumberData;
+        const numberData: any = {
+            ...originalData,
+            history: [...(originalData.history || []), historyEvent]
+        };
+
+        const batch = db.batch();
+        const numberRef = db.collection('numbers').doc(); // Create new ID or use original if possible
+        // The original ID is not explicitly stored in SaleRecord according to the interface, 
+        // but originalNumberData contains all fields. 
+        // In the UI, addActivity logs 'Cancelled Sale'.
+        
+        batch.set(db.collection('numbers').doc(), numberData);
+        batch.delete(saleRef);
+
+        // Add activity log
+        const activityRef = db.collection('activities').doc();
+        batch.set(activityRef, {
+            employeeName: performedBy,
+            action: 'Cancelled Sale',
+            description: `Sale for number ${saleData.mobile} cancelled.`,
+            timestamp: FieldValue.serverTimestamp(),
+            createdBy: 'BOT', // Or actual UID if available, but service doesn't always have it
+            source: 'BOT',
+            groupName: 'SALES'
+        });
+
+        await batch.commit();
+        return true;
+    } catch (error: any) {
+        logger.error(`Error in cancelSale: ${error.message}`);
+        throw error;
+    }
+};

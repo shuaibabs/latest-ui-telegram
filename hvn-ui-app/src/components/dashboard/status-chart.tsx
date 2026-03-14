@@ -14,17 +14,10 @@ export function StatusChart() {
   const { numbers, sales, preBookings } = useApp();
   const { theme } = useTheme();
 
-  const roleFilteredSales = React.useMemo(() => {
-    if (role === 'admin') {
-      return sales;
-    }
-    return sales.filter(sale => sale.originalNumberData?.assignedTo === user?.displayName);
-  }, [sales, role, user?.displayName]);
-
   const rtpCount = numbers.filter(n => n.status === "RTP").length;
   const nonRtpCount = numbers.length - rtpCount;
   const pendingUploads = numbers.filter(n => n.uploadStatus === 'Pending').length;
-  const salesCount = roleFilteredSales.length;
+  const salesCount = sales.length;
   const preBookingsCount = preBookings.length;
 
   const chartData = [

@@ -42,3 +42,21 @@ export async function hasRole(telegramUsername: string | undefined, role: 'admin
 export async function isAdmin(telegramUsername: string | undefined): Promise<boolean> {
     return hasRole(telegramUsername, 'admin');
 }
+/**
+ * Gets the full user profile from Firestore based on Telegram username.
+ */
+export async function getUserProfile(telegramUsername: string | undefined): Promise<User | null> {
+    if (!telegramUsername) return null;
+
+    try {
+        const usersRef = db.collection('users');
+        const querySnapshot = await usersRef.where('telegramUsername', '==', telegramUsername.replace(/^@/, '')).get();
+
+        if (querySnapshot.empty) return null;
+
+        return querySnapshot.docs[0].data() as User;
+    } catch (error: any) {
+        logger.error(`Error fetching profile for @${telegramUsername}: ${error.message}`);
+        return null;
+    }
+}

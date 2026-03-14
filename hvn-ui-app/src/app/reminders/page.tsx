@@ -44,17 +44,10 @@ export default function RemindersPage() {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: SortableColumn; direction: 'ascending' | 'descending' } | null>({ key: 'dueDate', direction: 'ascending' });
 
-  const roleFilteredReminders = useMemo(() => {
-    if (role === 'admin') {
-      return reminders;
-    }
-    // Ensure r.assignedTo is an array before calling .includes()
-    return reminders.filter(r => Array.isArray(r.assignedTo) && r.assignedTo.includes(user?.displayName || ''));
-  }, [reminders, role, user?.displayName]);
-
+  const [searchTerm, setSearchTerm] = useState('');
 
   const sortedReminders = useMemo(() => {
-    let sortableItems = [...roleFilteredReminders];
+    let sortableItems = [...reminders];
 
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
@@ -91,7 +84,7 @@ export default function RemindersPage() {
       });
     }
     return sortableItems;
-  }, [roleFilteredReminders, sortConfig]);
+  }, [reminders, sortConfig]);
 
   const totalPages = Math.ceil(sortedReminders.length / itemsPerPage);
   const paginatedReminders = sortedReminders.slice(

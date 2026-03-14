@@ -78,14 +78,9 @@ export default function PartnersPage() {
         assignedTo: sale.originalNumberData.assignedTo,
       }));
 
-    const allPartnershipNumbers = [...activePartnershipNumbers, ...soldPartnershipNumbers];
+    return [...activePartnershipNumbers, ...soldPartnershipNumbers];
 
-    if (role === 'admin') {
-      return allPartnershipNumbers;
-    }
-    return allPartnershipNumbers.filter(num => num.assignedTo === user?.displayName);
-
-  }, [numbers, sales, role, user?.displayName]);
+  }, [numbers, sales]);
 
   const sortedNumbers = useMemo(() => {
     let sortableItems = [...combinedPartnershipNumbers].filter(num =>
