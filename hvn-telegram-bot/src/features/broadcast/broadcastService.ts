@@ -7,6 +7,19 @@ const botToken = env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(botToken); // Dedicated broadcast instance
 
 /**
+ * Escapes characters for HTML parse mode.
+ */
+function escapeHTML(text: string): string {
+    if (!text) return '';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
  * Robust broadcast service with centralized error handling.
  */
 export async function broadcast(
@@ -15,7 +28,16 @@ export async function broadcast(
     source: 'BOT' | 'UI' = 'BOT'
 ): Promise<{ success: boolean; error?: string }> {
 
-    const formattedMasterMsg = `**🔔 Master Alert**\n**Source:** ${source}\n**Action Type:** ${groupInput}\n\n${message}`;
+    const escapedSource = escapeHTML(source);
+    const escapedGroupInput = escapeHTML(groupInput);
+    
+    // Note: message might contain <b>/<i> tags already if formatted by the caller, 
+    // but in our case server.ts passes a string with **. 
+    // Let's assume the caller provides plain text or we clean it up.
+    // For now, let's transform ** to <b>.
+    const htmlMessage = message.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+    const formattedMasterMsg = `<b>🔔 Master Alert</b>\n<b>Source:</b> ${escapedSource}\n<b>Action Type:</b> ${escapedGroupInput}\n\n${htmlMessage}`;
 
     // 1. Determine Target Group ID
     let targetGroupId = groupInput;
@@ -24,13 +46,12 @@ export async function broadcast(
     }
 
     const results: string[] = [];
-    const errors: string[] = [];
 
     try {
         // 2. Send to Dedicated Group (if valid)
         if (targetGroupId && targetGroupId.startsWith('-')) {
-            await bot.sendMessage(targetGroupId, message, {
-                parse_mode: 'Markdown',
+            await bot.sendMessage(targetGroupId, htmlMessage, {
+                parse_mode: 'HTML',
                 disable_web_page_preview: true
             });
             results.push(`Sent to Group: ${targetGroupId}`);
@@ -40,7 +61,7 @@ export async function broadcast(
         const masterId = GROUPS.MASTER_CHANNEL;
         if (masterId && masterId.startsWith('-')) {
             await bot.sendMessage(masterId, formattedMasterMsg, {
-                parse_mode: 'Markdown',
+                parse_mode: 'HTML',
                 disable_web_page_preview: true
             });
             results.push(`Mirrored to Master Channel: ${masterId}`);

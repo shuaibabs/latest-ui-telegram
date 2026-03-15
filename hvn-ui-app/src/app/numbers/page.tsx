@@ -318,33 +318,42 @@ export default function AllNumbersPage() {
   const selectedNumberRecords = numbers.filter(n => selectedRows.includes(n.id));
 
   const handleCopySelected = () => {
-    if (selectedNumberRecords.length === 0) {
-      toast({
-        title: "Nothing to copy",
-        description: "Please select at least one row to copy.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (selectedNumberRecords.length === 0) return;
 
-    const textToCopy = selectedNumberRecords.map(num => {
+    // Define column widths
+    const w = { mob: 12, s: 5, ds: 13, st: 8, d: 12, p: 6 };
+
+    // Create Header
+    const h = [
+      "Mobile".padEnd(w.mob),
+      "Sum".padEnd(w.s),
+      "2-Digit Sum".padEnd(w.ds),
+      "Status".padEnd(w.st),
+      "RTP Date".padEnd(w.d),
+      "Price".padEnd(w.p)
+    ].join(' | ');
+
+    const separator = "-".repeat(h.length);
+
+    // Create Rows
+    const rows = selectedNumberRecords.map(num => {
       const twoDigitSum = calculateSimpleSum(num.mobile);
       const rtpDate = num.rtpDate ? format(num.rtpDate.toDate(), 'yyyy-MM-dd') : 'N/A';
-      return [num.mobile, num.sum, twoDigitSum, num.status, rtpDate].join(',\t');
-    }).join('\n');
+
+      return [
+        String(num.mobile).padEnd(w.mob),
+        String(num.sum).padEnd(w.s),
+        String(twoDigitSum).padEnd(w.ds),
+        String(num.status).padEnd(w.st),
+        String(rtpDate).padEnd(w.d),
+        String(num.salePrice).padEnd(w.p)
+      ].join(' | ');
+    });
+
+    const textToCopy = [h, separator, ...rows].join('\n');
 
     navigator.clipboard.writeText(textToCopy).then(() => {
-      toast({
-        title: "Copied to clipboard!",
-        description: `${selectedNumberRecords.length} record(s) have been copied.`,
-      });
-    }).catch(err => {
-      toast({
-        title: "Failed to copy",
-        description: "Could not copy text to clipboard.",
-        variant: "destructive"
-      });
-      console.error('Failed to copy: ', err);
+      toast({ title: "Copied to clipboard!" });
     });
   };
 

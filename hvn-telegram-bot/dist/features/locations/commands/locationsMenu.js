@@ -15,6 +15,7 @@ const guard_1 = require("../../../core/auth/guard");
 const env_1 = require("../../../config/env");
 const listLocationsFlow_1 = require("../flows/listLocationsFlow");
 const editLocationFlow_1 = require("../flows/editLocationFlow");
+const detailsLocationFlow_1 = require("../flows/detailsLocationFlow");
 function locationsMenuCommand(bot, chatId, username) {
     return __awaiter(this, void 0, void 0, function* () {
         const opts = {
@@ -23,7 +24,7 @@ function locationsMenuCommand(bot, chatId, username) {
                 inline_keyboard: [
                     [{ text: '📍 List SIM Locations', callback_data: 'locations_list' }],
                     [{ text: '✏️ CheckIn / Edit Location', callback_data: 'locations_edit' }],
-                    [{ text: '🔄 Get Started', callback_data: 'start' }]
+                    [{ text: '🔍 View Details', callback_data: 'locations_details' }]
                 ]
             }
         };
@@ -46,5 +47,8 @@ function registerLocationsFeature(router) {
     })), [env_1.env.TG_GROUP_SIM_LOCATIONS || '']);
     router.registerCallback('locations_edit', guard_1.Guard.registeredOnlyCallback(bot, (query) => __awaiter(this, void 0, void 0, function* () {
         yield (0, editLocationFlow_1.startEditLocationFlow)(bot, query.message.chat.id, query.from.username);
+    })), [env_1.env.TG_GROUP_SIM_LOCATIONS || '']);
+    router.registerCallback('locations_details', guard_1.Guard.registeredOnlyCallback(bot, (query) => __awaiter(this, void 0, void 0, function* () {
+        yield (0, detailsLocationFlow_1.startDetailsLocationFlow)(bot, query.message.chat.id, query.from.username);
     })), [env_1.env.TG_GROUP_SIM_LOCATIONS || '']);
 }

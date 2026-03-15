@@ -4,6 +4,7 @@ import { Guard } from '../../../core/auth/guard';
 import { env } from '../../../config/env';
 import { startAddDealerFlow } from '../flows/addDealerFlow';
 import { startDeleteDealerFlow } from '../flows/deleteDealerFlow';
+import { startDetailsDealerFlow } from '../flows/detailsDealerFlow';
 
 export async function dealerMenuCommand(bot: TelegramBot, chatId: number, username?: string) {
     const opts: TelegramBot.SendMessageOptions = {
@@ -12,7 +13,7 @@ export async function dealerMenuCommand(bot: TelegramBot, chatId: number, userna
             inline_keyboard: [
                 [{ text: '➕ Add Dealer Numbers', callback_data: 'dealer_add' }],
                 [{ text: '🗑️ Delete Dealer Purchase', callback_data: 'dealer_delete' }],
-                [{ text: '🔄 Get Started', callback_data: 'start' }]
+                [{ text: '🔍 View Details', callback_data: 'dealer_details' }]
             ]
         }
     };
@@ -37,5 +38,9 @@ export function registerDealerFeature(router: CommandRouter) {
 
     router.registerCallback('dealer_delete', Guard.registeredOnlyCallback(bot, async (query) => {
         await startDeleteDealerFlow(bot, query.message!.chat.id, query.from.username);
+    }), [env.TG_GROUP_DEALER_PURCHASES || '']);
+
+    router.registerCallback('dealer_details', Guard.registeredOnlyCallback(bot, async (query) => {
+        await startDetailsDealerFlow(bot, query.message!.chat.id, query.from.username);
     }), [env.TG_GROUP_DEALER_PURCHASES || '']);
 }

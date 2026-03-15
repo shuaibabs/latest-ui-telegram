@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDeletedNumbers = getDeletedNumbers;
 exports.restoreNumber = restoreNumber;
+exports.getDeletedNumberByMobile = getDeletedNumberByMobile;
 const firebase_1 = require("../../config/firebase");
 const firestore_1 = require("firebase-admin/firestore");
 const logger_1 = require("../../core/logger/logger");
@@ -55,6 +56,24 @@ function restoreNumber(deletedNumberId, performedBy) {
         }
         catch (error) {
             logger_1.logger.error(`Error in restoreNumber: ${error.message}`);
+            throw error;
+        }
+    });
+}
+function getDeletedNumberByMobile(mobile, employeeName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let query = firebase_1.db.collection('deletedNumbers').where("mobile", "==", mobile);
+            if (employeeName) {
+                query = query.where("originalNumberData.assignedTo", "==", employeeName);
+            }
+            const snapshot = yield query.get();
+            if (snapshot.empty)
+                return null;
+            return Object.assign({ id: snapshot.docs[0].id }, snapshot.docs[0].data());
+        }
+        catch (error) {
+            logger_1.logger.error(`Error in getDeletedNumberByMobile: ${error.message}`);
             throw error;
         }
     });

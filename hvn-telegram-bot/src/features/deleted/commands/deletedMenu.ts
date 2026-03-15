@@ -4,6 +4,7 @@ import { Guard } from '../../../core/auth/guard';
 import { env } from '../../../config/env';
 import { startListDeletedFlow } from '../flows/listDeletedFlow';
 import { startRestoreDeletedFlow } from '../flows/restoreDeletedFlow';
+import { startDetailsDeletedFlow } from '../flows/detailsDeletedFlow';
 
 export async function deletedMenuCommand(bot: TelegramBot, chatId: number, username?: string) {
     const opts: TelegramBot.SendMessageOptions = {
@@ -12,7 +13,7 @@ export async function deletedMenuCommand(bot: TelegramBot, chatId: number, usern
             inline_keyboard: [
                 [{ text: '📜 List Deleted Numbers', callback_data: 'deleted_list' }],
                 [{ text: '♻️ Restore Number', callback_data: 'deleted_restore' }],
-                [{ text: '🔄 Get Started', callback_data: 'start' }]
+                [{ text: '🔍 View Details', callback_data: 'deleted_details' }]
             ]
         }
     };
@@ -37,5 +38,9 @@ export function registerDeletedFeature(router: CommandRouter) {
 
     router.registerCallback('deleted_restore', Guard.registeredOnlyCallback(bot, async (query) => {
         await startRestoreDeletedFlow(bot, query.message!.chat.id, query.from.username);
+    }), [env.TG_GROUP_DELETED_NUMBERS || '']);
+
+    router.registerCallback('deleted_details', Guard.registeredOnlyCallback(bot, async (query) => {
+        await startDetailsDeletedFlow(bot, query.message!.chat.id, query.from.username);
     }), [env.TG_GROUP_DELETED_NUMBERS || '']);
 }

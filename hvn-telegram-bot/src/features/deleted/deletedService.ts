@@ -51,3 +51,18 @@ export async function restoreNumber(deletedNumberId: string, performedBy: string
         throw error;
     }
 }
+
+export async function getDeletedNumberByMobile(mobile: string, employeeName?: string) {
+    try {
+        let query: any = db.collection('deletedNumbers').where("mobile", "==", mobile);
+        if (employeeName) {
+            query = query.where("originalNumberData.assignedTo", "==", employeeName);
+        }
+        const snapshot = await query.get();
+        if (snapshot.empty) return null;
+        return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as DeletedNumberRecord;
+    } catch (error: any) {
+        logger.error(`Error in getDeletedNumberByMobile: ${error.message}`);
+        throw error;
+    }
+}

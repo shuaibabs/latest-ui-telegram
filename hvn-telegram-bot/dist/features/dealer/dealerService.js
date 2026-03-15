@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDealerPurchases = getDealerPurchases;
 exports.addDealerPurchaseStep = addDealerPurchaseStep;
 exports.deleteDealerPurchase = deleteDealerPurchase;
+exports.getDealerPurchaseByMobile = getDealerPurchaseByMobile;
 const firebase_1 = require("../../config/firebase");
 const logger_1 = require("../../core/logger/logger");
 const utils_1 = require("../../shared/utils/utils");
@@ -56,6 +57,24 @@ function deleteDealerPurchase(id) {
         }
         catch (error) {
             logger_1.logger.error(`Error in deleteDealerPurchase: ${error.message}`);
+            throw error;
+        }
+    });
+}
+function getDealerPurchaseByMobile(mobile, employeeUid) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let query = firebase_1.db.collection('dealerPurchases').where("mobile", "==", mobile);
+            if (employeeUid) {
+                query = query.where("createdBy", "==", employeeUid);
+            }
+            const snapshot = yield query.get();
+            if (snapshot.empty)
+                return null;
+            return Object.assign({ id: snapshot.docs[0].id }, snapshot.docs[0].data());
+        }
+        catch (error) {
+            logger_1.logger.error(`Error in getDealerPurchaseByMobile: ${error.message}`);
             throw error;
         }
     });

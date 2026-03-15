@@ -327,8 +327,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // Send Telegram Notification using the unified structure
           import('@/lib/notifications').then(({ sendTelegramNotification }) => {
             sendTelegramNotification({
-              ...newActivity,
-              groupName: groupName
+              groupName: groupName,
+              action: activity.action,
+              employeeName: activity.employeeName,
+              description: activity.description,
+              source: 'UI'
             });
           });
         }

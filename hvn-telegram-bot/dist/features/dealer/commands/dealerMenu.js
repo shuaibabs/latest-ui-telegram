@@ -15,6 +15,7 @@ const guard_1 = require("../../../core/auth/guard");
 const env_1 = require("../../../config/env");
 const addDealerFlow_1 = require("../flows/addDealerFlow");
 const deleteDealerFlow_1 = require("../flows/deleteDealerFlow");
+const detailsDealerFlow_1 = require("../flows/detailsDealerFlow");
 function dealerMenuCommand(bot, chatId, username) {
     return __awaiter(this, void 0, void 0, function* () {
         const opts = {
@@ -23,7 +24,7 @@ function dealerMenuCommand(bot, chatId, username) {
                 inline_keyboard: [
                     [{ text: '➕ Add Dealer Numbers', callback_data: 'dealer_add' }],
                     [{ text: '🗑️ Delete Dealer Purchase', callback_data: 'dealer_delete' }],
-                    [{ text: '🔄 Get Started', callback_data: 'start' }]
+                    [{ text: '🔍 View Details', callback_data: 'dealer_details' }]
                 ]
             }
         };
@@ -44,5 +45,8 @@ function registerDealerFeature(router) {
     })), [env_1.env.TG_GROUP_DEALER_PURCHASES || '']);
     router.registerCallback('dealer_delete', guard_1.Guard.registeredOnlyCallback(bot, (query) => __awaiter(this, void 0, void 0, function* () {
         yield (0, deleteDealerFlow_1.startDeleteDealerFlow)(bot, query.message.chat.id, query.from.username);
+    })), [env_1.env.TG_GROUP_DEALER_PURCHASES || '']);
+    router.registerCallback('dealer_details', guard_1.Guard.registeredOnlyCallback(bot, (query) => __awaiter(this, void 0, void 0, function* () {
+        yield (0, detailsDealerFlow_1.startDetailsDealerFlow)(bot, query.message.chat.id, query.from.username);
     })), [env_1.env.TG_GROUP_DEALER_PURCHASES || '']);
 }

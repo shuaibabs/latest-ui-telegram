@@ -50,3 +50,18 @@ export async function deleteDealerPurchase(id: string) {
         throw error;
     }
 }
+
+export async function getDealerPurchaseByMobile(mobile: string, employeeUid?: string) {
+    try {
+        let query: any = db.collection('dealerPurchases').where("mobile", "==", mobile);
+        if (employeeUid) {
+            query = query.where("createdBy", "==", employeeUid);
+        }
+        const snapshot = await query.get();
+        if (snapshot.empty) return null;
+        return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as DealerPurchaseRecord;
+    } catch (error: any) {
+        logger.error(`Error in getDealerPurchaseByMobile: ${error.message}`);
+        throw error;
+    }
+}

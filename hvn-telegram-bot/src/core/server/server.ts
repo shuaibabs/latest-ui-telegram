@@ -71,9 +71,14 @@ export function startServer(bot: TelegramBot) {
             }
 
             const { groupName, action, employeeName, description, source } = parseResult.data;
+            const { escapeMarkdown } = await import('../../shared/utils/telegram');
 
-            // Format message consistently
-            const message = `**Action:** ${action}\n**Performed By:** ${employeeName}\n**Details:** ${description}`;
+            // Format message consistently and escape for Markdown
+            const escapedAction = escapeMarkdown(action);
+            const escapedEmployee = escapeMarkdown(employeeName);
+            const escapedDesc = escapeMarkdown(description);
+
+            const message = `**Action:** ${escapedAction}\n**Performed By:** ${escapedEmployee}\n**Details:** ${escapedDesc}`;
 
             // Route to correct group if not provided (though UI sends it)
             const userActions = ['Updated User', 'Deleted User', 'Added User'];

@@ -22,6 +22,7 @@ const history_1 = require("../../features/history");
 const locations_1 = require("../../features/locations");
 const dealer_1 = require("../../features/dealer");
 const deleted_1 = require("../../features/deleted");
+const reminders_1 = require("../../features/reminders");
 let bot = null;
 let commandRouter = null;
 function initializeBot() {
@@ -43,6 +44,7 @@ function initializeBot() {
         (0, locations_1.registerLocationsFeature)(commandRouter);
         (0, dealer_1.registerDealerFeature)(commandRouter);
         (0, deleted_1.registerDeletedFeature)(commandRouter);
+        (0, reminders_1.initRemindersFeature)(commandRouter);
         // Start listening for commands
         commandRouter.listen();
         // Generic error handling

@@ -208,7 +208,7 @@ async function performSearch(bot: TelegramBot, chatId: number, criteria: Advance
                 text += `${i + 1}. \`${num.mobile}\`\n`;
                 text += `   ├ Status: *${num.status}*\n`;
                 text += `   ├ Type: ${num.numberType}\n`;
-                text += `   ├ Sale: ₹${num.salePrice} | Pur: ₹${num.purchasePrice}\n`;
+                text += `   ├ Sale: ₹${num.salePrice}\n`;
                 text += `   └ Sum: ${num.sum} | Loc: ${num.currentLocation || 'N/A'}\n\n`;
             });
 

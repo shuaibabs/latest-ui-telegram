@@ -103,7 +103,22 @@ export async function updateLocation(mobile: string, data: { locationType: strin
 
         return mobile;
     } catch (error: any) {
-        logger.error(`Error in updateLocation: ${error.message}`);
+        logger.error(`定期 updateLocation: ${error.message}`);
+        throw error;
+    }
+}
+
+export async function getNumberByMobile(mobile: string, employeeName?: string) {
+    try {
+        let query: any = db.collection('numbers').where("mobile", "==", mobile);
+        if (employeeName) {
+            query = query.where("assignedTo", "==", employeeName);
+        }
+        const snapshot = await query.get();
+        if (snapshot.empty) return null;
+        return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as NumberRecord;
+    } catch (error: any) {
+        logger.error(`Error in getNumberByMobile: ${error.message}`);
         throw error;
     }
 }

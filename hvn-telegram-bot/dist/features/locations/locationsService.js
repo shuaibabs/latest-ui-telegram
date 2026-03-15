@@ -13,6 +13,7 @@ exports.getFilteredLocations = getFilteredLocations;
 exports.getAllUniqueLocations = getAllUniqueLocations;
 exports.checkInNumber = checkInNumber;
 exports.updateLocation = updateLocation;
+exports.getNumberByMobile = getNumberByMobile;
 const firebase_1 = require("../../config/firebase");
 const firestore_1 = require("firebase-admin/firestore");
 const logger_1 = require("../../core/logger/logger");
@@ -112,7 +113,25 @@ function updateLocation(mobile, data, performedBy, employeeName) {
             return mobile;
         }
         catch (error) {
-            logger_1.logger.error(`Error in updateLocation: ${error.message}`);
+            logger_1.logger.error(`定期 updateLocation: ${error.message}`);
+            throw error;
+        }
+    });
+}
+function getNumberByMobile(mobile, employeeName) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let query = firebase_1.db.collection('numbers').where("mobile", "==", mobile);
+            if (employeeName) {
+                query = query.where("assignedTo", "==", employeeName);
+            }
+            const snapshot = yield query.get();
+            if (snapshot.empty)
+                return null;
+            return Object.assign({ id: snapshot.docs[0].id }, snapshot.docs[0].data());
+        }
+        catch (error) {
+            logger_1.logger.error(`Error in getNumberByMobile: ${error.message}`);
             throw error;
         }
     });

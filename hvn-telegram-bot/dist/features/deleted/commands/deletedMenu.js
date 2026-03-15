@@ -15,6 +15,7 @@ const guard_1 = require("../../../core/auth/guard");
 const env_1 = require("../../../config/env");
 const listDeletedFlow_1 = require("../flows/listDeletedFlow");
 const restoreDeletedFlow_1 = require("../flows/restoreDeletedFlow");
+const detailsDeletedFlow_1 = require("../flows/detailsDeletedFlow");
 function deletedMenuCommand(bot, chatId, username) {
     return __awaiter(this, void 0, void 0, function* () {
         const opts = {
@@ -23,7 +24,7 @@ function deletedMenuCommand(bot, chatId, username) {
                 inline_keyboard: [
                     [{ text: '📜 List Deleted Numbers', callback_data: 'deleted_list' }],
                     [{ text: '♻️ Restore Number', callback_data: 'deleted_restore' }],
-                    [{ text: '🔄 Get Started', callback_data: 'start' }]
+                    [{ text: '🔍 View Details', callback_data: 'deleted_details' }]
                 ]
             }
         };
@@ -44,5 +45,8 @@ function registerDeletedFeature(router) {
     })), [env_1.env.TG_GROUP_DELETED_NUMBERS || '']);
     router.registerCallback('deleted_restore', guard_1.Guard.registeredOnlyCallback(bot, (query) => __awaiter(this, void 0, void 0, function* () {
         yield (0, restoreDeletedFlow_1.startRestoreDeletedFlow)(bot, query.message.chat.id, query.from.username);
+    })), [env_1.env.TG_GROUP_DELETED_NUMBERS || '']);
+    router.registerCallback('deleted_details', guard_1.Guard.registeredOnlyCallback(bot, (query) => __awaiter(this, void 0, void 0, function* () {
+        yield (0, detailsDeletedFlow_1.startDetailsDeletedFlow)(bot, query.message.chat.id, query.from.username);
     })), [env_1.env.TG_GROUP_DELETED_NUMBERS || '']);
 }

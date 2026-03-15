@@ -4,6 +4,7 @@ import { Guard } from '../../../core/auth/guard';
 import { env } from '../../../config/env';
 import { startListLocationsFlow } from '../flows/listLocationsFlow';
 import { startEditLocationFlow } from '../flows/editLocationFlow';
+import { startDetailsLocationFlow } from '../flows/detailsLocationFlow';
 
 export async function locationsMenuCommand(bot: TelegramBot, chatId: number, username?: string) {
     const opts: TelegramBot.SendMessageOptions = {
@@ -12,7 +13,7 @@ export async function locationsMenuCommand(bot: TelegramBot, chatId: number, use
             inline_keyboard: [
                 [{ text: '📍 List SIM Locations', callback_data: 'locations_list' }],
                 [{ text: '✏️ CheckIn / Edit Location', callback_data: 'locations_edit' }],
-                [{ text: '🔄 Get Started', callback_data: 'start' }]
+                [{ text: '🔍 View Details', callback_data: 'locations_details' }]
             ]
         }
     };
@@ -39,5 +40,9 @@ export function registerLocationsFeature(router: CommandRouter) {
 
     router.registerCallback('locations_edit', Guard.registeredOnlyCallback(bot, async (query) => {
         await startEditLocationFlow(bot, query.message!.chat.id, query.from.username);
+    }), [env.TG_GROUP_SIM_LOCATIONS || '']);
+
+    router.registerCallback('locations_details', Guard.registeredOnlyCallback(bot, async (query) => {
+        await startDetailsLocationFlow(bot, query.message!.chat.id, query.from.username);
     }), [env.TG_GROUP_SIM_LOCATIONS || '']);
 }
