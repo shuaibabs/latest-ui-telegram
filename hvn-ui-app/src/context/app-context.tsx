@@ -303,6 +303,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       'Exported Data': 'ACTIVITY',
       'Exported Sales Report': 'ACTIVITY',
       'Imported Data': 'ACTIVITY',
+
+      // VENDORS
+      'Added Vendor': 'SALES',
+      'Updated Vendor': 'SALES',
+      'Deleted Vendor': 'SALES',
     };
 
     const groupName = actionGroups[activity.action] || 'ACTIVITY';
@@ -1582,7 +1587,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addActivity({
         employeeName: performedBy,
         action: 'Deleted Numbers',
-        description: createDetailedDescription(`Archived from master inventory:`, affectedNumbers)
+        description: `Reason: ${reason}. ${createDetailedDescription(`Archived from master inventory:`, affectedNumbers)}`
       });
       toast({ title: 'Numbers Deleted', description: `${numbersToDelete.length} number(s) moved to Deleted Numbers.` });
     }).catch(async (serverError) => {
@@ -1677,6 +1682,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
         .then(async (response) => {
           if (response.ok) {
+            addActivity({
+              employeeName: user.displayName || user.email || 'User',
+              action: 'Deleted User',
+              description: `Deleted account for user ${deletedUser?.displayName || 'Unknown'}.`
+            });
             toast({
               title: "User Deleted",
               description: `Account for ${deletedUser?.displayName || 'Unknown'} has been removed successfully.`,
