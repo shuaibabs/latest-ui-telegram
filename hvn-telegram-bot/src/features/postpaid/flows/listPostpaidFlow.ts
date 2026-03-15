@@ -3,6 +3,7 @@ import { CommandRouter } from '../../../core/router/commandRouter';
 import { getPostpaidNumbers } from '../postpaidService';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
 import { logger } from '../../../core/logger/logger';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startListPostpaidFlow(bot: TelegramBot, chatId: number, username?: string) {
     try {
@@ -28,7 +29,7 @@ export async function startListPostpaidFlow(bot: TelegramBot, chatId: number, us
         const list = results.slice(0, 20);
         list.forEach((num, i) => {
             text += `${i + 1}. \`${num.mobile}\` | ${num.status}\n`;
-            if (num.billDate) text += `   └ Bill Date: ${num.billDate.toDate().toLocaleDateString()}\n`;
+            if (num.billDate) text += `   └ Bill Date: ${formatToDDMMYYYY(num.billDate)}\n`;
             text += `   └ PD Bill: ${num.pdBill || 'N/A'}\n`;
         });
 

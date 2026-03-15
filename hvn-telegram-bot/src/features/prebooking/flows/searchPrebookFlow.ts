@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { searchPrebookingNumbers, PrebookSearchCriteria } from '../prebookingService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const SEARCH_STAGES = {
     SELECT_TYPE: 'SELECT_TYPE',
@@ -181,7 +182,7 @@ async function performSearch(bot: TelegramBot, chatId: number, criteria: Prebook
 
             const displayResults = results.slice(0, 15);
             displayResults.forEach((pb, i) => {
-                text += `${i + 1}. \`${pb.mobile}\` | ${pb.preBookingDate.toDate().toLocaleDateString()}\n`;
+                text += `${i + 1}. \`${pb.mobile}\` | ${formatToDDMMYYYY(pb.preBookingDate)}\n`;
                 text += `   └ Type: ${pb.originalNumberData.numberType}\n`;
             });
 

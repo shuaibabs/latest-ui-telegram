@@ -2,6 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { getSession, setSession, clearSession } from '../../../core/bot/sessionManager';
 import { logger } from '../../../core/logger/logger';
 import { escapeMarkdown } from '../../../shared/utils/telegram';
+import { formatToDDMMYYYY, parseFromDDMMYYYY } from '../../../shared/utils/dateUtils';
 import { NewNumberData, User } from '../../../shared/types/data';
 import { addInventoryNumbers } from '../inventoryService';
 import { getAllUsers } from '../../users/userService';
@@ -101,9 +102,15 @@ async function handleTypeSelection(bot: TelegramBot, query: TelegramBot.Callback
     } else if (type === 'Postpaid') {
         session.stage = 'AWAIT_POSTPAID_BILL_DATE';
         setSession(query.message!.chat.id, 'addNumber', session);
-        await bot.sendMessage(query.message!.chat.id, "*Step 3:* Enter Bill Date (YYYY-MM-DD):", {
+        const today = formatToDDMMYYYY(new Date());
+        await bot.sendMessage(query.message!.chat.id, `*Step 3:* Enter Bill Date (DD/MM/YYYY):\n(Type 'today' for ${today})`, {
             parse_mode: 'Markdown',
-            reply_markup: { inline_keyboard: [[cancelBtn]] }
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: `📅 Today (${today})`, callback_data: 'add_num_date_bill_today' }],
+                    [cancelBtn]
+                ]
+            }
         });
     } else if (type === 'COCP') {
         session.stage = 'AWAIT_COCP_ACCOUNT';
@@ -115,11 +122,8 @@ async function handleTypeSelection(bot: TelegramBot, query: TelegramBot.Callback
     }
 }
 
-// Helper for date parsing
-const parseDate = (text: string): Date | null => {
-    const d = new Date(text);
-    return isNaN(d.getTime()) ? null : d;
-};
+// Helper for date parsing - moved to dateUtils
+const parseDate = parseFromDDMMYYYY;
 
 // ... more handlers ...
 // (I will implement the rest in the final file writing)
@@ -134,9 +138,16 @@ export function registerAddNumberFlow(router: CommandRouter) {
         switch (session.stage) {
             case 'AWAIT_NUMBERS': await handleNumbersInput(bot, msg, session); break;
             case 'AWAIT_POSTPAID_BILL_DATE':
-                const bDate = parseDate(msg.text);
+                let bDateStr = msg.text.trim().toLowerCase();
+                let bDate: Date | null;
+                if (bDateStr === 'today') {
+                    bDate = new Date();
+                } else {
+                    bDate = parseDate(msg.text);
+                }
+                
                 if (!bDate) {
-                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use YYYY-MM-DD.");
+                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use DD/MM/YYYY.");
                     return;
                 }
                 session.data.billDate = bDate;
@@ -155,14 +166,27 @@ export function registerAddNumberFlow(router: CommandRouter) {
                 session.data.accountName = msg.text.trim();
                 session.stage = 'AWAIT_COCP_SAFE_CUSTODY';
                 setSession(msg.chat.id, 'addNumber', session);
-                await bot.sendMessage(msg.chat.id, "Enter Safe Custody Date (YYYY-MM-DD):", {
-                    reply_markup: { inline_keyboard: [[cancelBtn]] }
+                const todaySC = formatToDDMMYYYY(new Date());
+                await bot.sendMessage(msg.chat.id, `Enter Safe Custody Date (DD/MM/YYYY):\n(Type 'today' for ${todaySC})`, {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: `📅 Today (${todaySC})`, callback_data: 'add_num_date_sc_today' }],
+                            [cancelBtn]
+                        ]
+                    }
                 });
                 break;
             case 'AWAIT_COCP_SAFE_CUSTODY':
-                const scDate = parseDate(msg.text);
+                let scDateStr = msg.text.trim().toLowerCase();
+                let scDate: Date | null;
+                if (scDateStr === 'today') {
+                    scDate = new Date();
+                } else {
+                    scDate = parseDate(msg.text);
+                }
+                
                 if (!scDate) {
-                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use YYYY-MM-DD.");
+                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use DD/MM/YYYY.");
                     return;
                 }
                 session.data.safeCustodyDate = scDate;
@@ -177,14 +201,27 @@ export function registerAddNumberFlow(router: CommandRouter) {
                 session.data.purchaseFrom = msg.text.trim();
                 session.stage = 'AWAIT_PURCHASE_DATE';
                 setSession(msg.chat.id, 'addNumber', session);
-                await bot.sendMessage(msg.chat.id, "Enter Purchase Date (YYYY-MM-DD):", {
-                    reply_markup: { inline_keyboard: [[cancelBtn]] }
+                const todayP = formatToDDMMYYYY(new Date());
+                await bot.sendMessage(msg.chat.id, `Enter Purchase Date (DD/MM/YYYY):\n(Type 'today' for ${todayP})`, {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: `📅 Today (${todayP})`, callback_data: 'add_num_date_purchase_today' }],
+                            [cancelBtn]
+                        ]
+                    }
                 });
                 break;
             case 'AWAIT_PURCHASE_DATE':
-                const pDate = parseDate(msg.text);
+                let pDateStr = msg.text.trim().toLowerCase();
+                let pDate: Date | null;
+                if (pDateStr === 'today') {
+                    pDate = new Date();
+                } else {
+                    pDate = parseDate(msg.text);
+                }
+                
                 if (!pDate) {
-                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use YYYY-MM-DD.");
+                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use DD/MM/YYYY.");
                     return;
                 }
                 session.data.purchaseDate = pDate;
@@ -241,9 +278,16 @@ export function registerAddNumberFlow(router: CommandRouter) {
                 });
                 break;
             case 'AWAIT_RTP_DATE':
-                const rDate = parseDate(msg.text);
+                let rDateStr = msg.text.trim().toLowerCase();
+                let rDate: Date | null;
+                if (rDateStr === 'today') {
+                    rDate = new Date();
+                } else {
+                    rDate = parseDate(msg.text);
+                }
+                
                 if (!rDate) {
-                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use YYYY-MM-DD.");
+                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Use DD/MM/YYYY.");
                     return;
                 }
                 session.data.rtpDate = rDate;
@@ -298,6 +342,51 @@ export function registerAddNumberFlow(router: CommandRouter) {
         });
     });
 
+    router.registerCallback('add_num_date_bill_today', async (query: TelegramBot.CallbackQuery) => {
+        const chatId = query.message!.chat.id;
+        const session = getSession(chatId, 'addNumber') as AddNumberSession | undefined;
+        if (!session || session.stage !== 'AWAIT_POSTPAID_BILL_DATE') return;
+
+        session.data.billDate = new Date();
+        session.stage = 'AWAIT_POSTPAID_PD_BILL';
+        setSession(chatId, 'addNumber', session);
+        await bot.sendMessage(chatId, "Is this a PD Bill?", {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Yes', callback_data: 'add_num_pdbill_Yes' }, { text: 'No', callback_data: 'add_num_pdbill_No' }],
+                    [cancelBtn]
+                ]
+            }
+        });
+    });
+
+    router.registerCallback('add_num_date_sc_today', async (query: TelegramBot.CallbackQuery) => {
+        const chatId = query.message!.chat.id;
+        const session = getSession(chatId, 'addNumber') as AddNumberSession | undefined;
+        if (!session || session.stage !== 'AWAIT_COCP_SAFE_CUSTODY') return;
+
+        session.data.safeCustodyDate = new Date();
+        session.stage = 'AWAIT_PURCHASE_VENDOR';
+        setSession(chatId, 'addNumber', session);
+        await bot.sendMessage(chatId, "*Step 4:* Enter Purchase From (Vendor Name):", {
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard: [[cancelBtn]] }
+        });
+    });
+
+    router.registerCallback('add_num_date_purchase_today', async (query: TelegramBot.CallbackQuery) => {
+        const chatId = query.message!.chat.id;
+        const session = getSession(chatId, 'addNumber') as AddNumberSession | undefined;
+        if (!session || session.stage !== 'AWAIT_PURCHASE_DATE') return;
+
+        session.data.purchaseDate = new Date();
+        session.stage = 'AWAIT_PURCHASE_PRICE';
+        setSession(chatId, 'addNumber', session);
+        await bot.sendMessage(chatId, "Enter Purchase Price (₹):", {
+            reply_markup: { inline_keyboard: [[cancelBtn]] }
+        });
+    });
+
     router.registerCallback(/^add_num_owner_/, async (query: TelegramBot.CallbackQuery) => {
         const session = getSession(query.message!.chat.id, 'addNumber') as AddNumberSession | undefined;
         if (!session || session.stage !== 'AWAIT_OWNERSHIP') return;
@@ -333,9 +422,15 @@ export function registerAddNumberFlow(router: CommandRouter) {
         if (rtp === 'Non-RTP') {
             session.stage = 'AWAIT_RTP_DATE';
             setSession(query.message!.chat.id, 'addNumber', session);
-            await bot.sendMessage(query.message!.chat.id, "*Step 8:* Enter Schedule RTP Date (YYYY-MM-DD):", {
+            const todayRTP = formatToDDMMYYYY(new Date());
+            await bot.sendMessage(query.message!.chat.id, `*Step 8:* Enter Schedule RTP Date (DD/MM/YYYY):\n(Type 'today' for ${todayRTP})`, {
                 parse_mode: 'Markdown',
-                reply_markup: { inline_keyboard: [[cancelBtn]] }
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: `📅 Today (${todayRTP})`, callback_data: 'add_num_date_rtp_today' }],
+                        [cancelBtn]
+                    ]
+                }
             });
         } else {
             session.stage = 'AWAIT_UPLOAD_STATUS';
@@ -350,6 +445,25 @@ export function registerAddNumberFlow(router: CommandRouter) {
                 }
             });
         }
+    });
+
+    router.registerCallback('add_num_date_rtp_today', async (query: TelegramBot.CallbackQuery) => {
+        const chatId = query.message!.chat.id;
+        const session = getSession(chatId, 'addNumber') as AddNumberSession | undefined;
+        if (!session || session.stage !== 'AWAIT_RTP_DATE') return;
+
+        session.data.rtpDate = new Date();
+        session.stage = 'AWAIT_UPLOAD_STATUS';
+        setSession(chatId, 'addNumber', session);
+        await bot.sendMessage(chatId, "*Step 8:* Upload Status:", {
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: 'Pending', callback_data: 'add_num_upload_Pending' }, { text: 'Done', callback_data: 'add_num_upload_Done' }],
+                    [cancelBtn]
+                ]
+            }
+        });
     });
 
     router.registerCallback(/^add_num_upload_/, async (query: TelegramBot.CallbackQuery) => {
@@ -405,10 +519,10 @@ export function registerAddNumberFlow(router: CommandRouter) {
         const summary = `*Summary of New Number(s)*\n\n` +
             `📱 *Numbers:* ${d.rawNumbers?.join(', ')}\n` +
             `📝 *Type:* ${d.numberType}\n` +
-            (d.numberType === 'Postpaid' ? `📅 *Bill Date:* ${d.billDate?.toLocaleDateString()}\n📊 *PD Bill:* ${d.pdBill}\n` : '') +
-            (d.numberType === 'COCP' ? `🏢 *Account:* ${d.accountName}\n📅 *Custody Date:* ${d.safeCustodyDate?.toLocaleDateString()}\n` : '') +
+            (d.numberType === 'Postpaid' ? `📅 *Bill Date:* ${formatToDDMMYYYY(d.billDate)}\n📊 *PD Bill:* ${d.pdBill}\n` : '') +
+            (d.numberType === 'COCP' ? `🏢 *Account:* ${d.accountName}\n📅 *Custody Date:* ${formatToDDMMYYYY(d.safeCustodyDate)}\n` : '') +
             `👤 *Ownership:* ${d.ownershipType}${d.ownershipType === 'Partnership' ? ` (Partner: ${d.partnerName})` : ''}\n` +
-            `💰 *Purchase:* From ${d.purchaseFrom} on ${d.purchaseDate?.toLocaleDateString()} for ₹${d.purchasePrice}\n` +
+            `💰 *Purchase:* From ${d.purchaseFrom} on ${formatToDDMMYYYY(d.purchaseDate)} for ₹${d.purchasePrice}\n` +
             `📈 *Intended Sale:* ₹${d.salePrice}\n` +
             `📍 *Status/Loc:* ${d.status} | ${d.uploadStatus} | ${d.currentLocation} (${d.locationType})\n` +
             `👷 *Assigned To:* ${d.assignedTo}\n\n` +

@@ -4,6 +4,7 @@ import { addDealerPurchaseStep } from '../dealerService';
 import { isAdmin, getUserProfile } from '../../../core/auth/permissions';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { logger } from '../../../core/logger/logger';
+import { logActivity } from '../../activities/activityService';
 
 export async function startAddDealerFlow(bot: TelegramBot, chatId: number, username?: string) {
     setSession(chatId, 'addDealer', { stage: 'AWAIT_NUMBERS' });
@@ -90,8 +91,18 @@ export function registerAddDealerFlow(router: CommandRouter) {
                     price: session.price
                 }, profile.uid);
             }
-
             await bot.sendMessage(chatId, `✅ *Success!*\n\n${session.mobiles.length} dealer purchase records have been added.`, { parse_mode: 'Markdown' });
+
+            const performedBy = profile?.displayName || query.from.username || 'Unknown';
+            // Log Activity
+            await logActivity(bot, {
+                employeeName: performedBy,
+                action: 'ADD_DEALER_PURCHASE',
+                description: `Added dealer purchase for ${session.mobiles.length} numbers: ${session.mobiles.join(', ')} (Dealer: ${session.dealerName}, Price: ₹${session.price})`,
+                createdBy: performedBy,
+                source: 'BOT',
+                groupName: 'DEALER_PURCHASES'
+            }, true);
         } catch (error: any) {
             await bot.sendMessage(chatId, `❌ Error: ${error.message}`);
         }

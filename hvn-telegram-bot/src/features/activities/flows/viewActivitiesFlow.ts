@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { getRecentActivities, getAllActivities } from '../activityService';
 import { escapeMarkdown } from '../../../shared/utils/telegram';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function handleViewActivities(bot: TelegramBot, callbackQuery: TelegramBot.CallbackQuery) {
     const chatId = callbackQuery.message!.chat.id;
@@ -29,7 +30,7 @@ export async function handleViewActivities(bot: TelegramBot, callbackQuery: Tele
         for (const act of activities) {
             const entry = `📌 *#${act.srNo}* | ${escapeMarkdown(act.action)}\n` +
                 `└ *Target:* ${escapeMarkdown(act.employeeName)}\n` +
-                `└ *By:* ${escapeMarkdown(act.createdBy)} | ${act.timestamp.toDate().toLocaleDateString()}\n\n`;
+                `└ *By:* ${escapeMarkdown(act.createdBy)} | ${formatToDDMMYYYY(act.timestamp)}\n\n`;
 
             // Handle long messages by splitting
             if ((message + entry).length > 4000) {

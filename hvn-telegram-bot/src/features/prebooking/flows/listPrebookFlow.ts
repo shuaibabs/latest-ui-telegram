@@ -3,6 +3,7 @@ import { CommandRouter } from '../../../core/router/commandRouter';
 import { getPrebookingNumbers } from '../prebookingService';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
 import { logger } from '../../../core/logger/logger';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startListPrebookFlow(bot: TelegramBot, chatId: number, username?: string) {
     try {
@@ -28,7 +29,7 @@ export async function startListPrebookFlow(bot: TelegramBot, chatId: number, use
         // Limit to top 20
         const list = results.slice(0, 20);
         list.forEach((pb, i) => {
-            text += `${i + 1}. \`${pb.mobile}\` | ${pb.preBookingDate.toDate().toLocaleDateString()}\n`;
+            text += `${i + 1}. \`${pb.mobile}\` | ${formatToDDMMYYYY(pb.preBookingDate)}\n`;
             text += `   └ Type: ${pb.originalNumberData.numberType}\n`;
         });
 

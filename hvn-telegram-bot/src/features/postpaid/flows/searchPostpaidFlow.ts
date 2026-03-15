@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { searchPostpaidNumbers } from '../postpaidService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const SEARCH_STAGES = {
     SELECT_TYPE: 'SELECT_TYPE',
@@ -183,7 +184,7 @@ async function performSearch(bot: TelegramBot, chatId: number, criteria: any, us
             const displayResults = results.slice(0, 15);
             displayResults.forEach((num, i) => {
                 text += `${i + 1}. \`${num.mobile}\` | ${num.status}\n`;
-                if (num.billDate) text += `   └ Bill Date: ${num.billDate.toDate().toLocaleDateString()}\n`;
+                if (num.billDate) text += `   └ Bill Date: ${formatToDDMMYYYY(num.billDate)}\n`;
             });
 
             if (count > 15) {

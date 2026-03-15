@@ -6,6 +6,7 @@ import { NumberRecord } from '../../../shared/types/data';
 import { validateNumbersExistence, updateNumbersStatusBatch } from '../inventoryService';
 import { logActivity } from '../../activities/activityService';
 import { CommandRouter } from '../../../core/router/commandRouter';
+import { formatToDDMMYYYY, parseFromDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const UPDATE_STATUS_STAGES = {
     AWAIT_UPDATE_TYPE: 'AWAIT_UPDATE_TYPE',
@@ -53,10 +54,7 @@ export async function startUpdateStatusFlow(bot: TelegramBot, chatId: number) {
     });
 }
 
-const parseDate = (text: string): Date | null => {
-    const d = new Date(text);
-    return isNaN(d.getTime()) ? null : d;
-};
+const parseDate = parseFromDDMMYYYY;
 
 export function registerUpdateStatusFlow(router: CommandRouter) {
     const bot = router.bot;
@@ -144,9 +142,17 @@ export function registerUpdateStatusFlow(router: CommandRouter) {
             }
 
             case 'AWAIT_RTP_DATE': {
-                const rDate = parseDate(msg.text);
+                let dateStr = msg.text.trim().toLowerCase();
+                let rDate: Date | null;
+                
+                if (dateStr === 'today') {
+                    rDate = new Date();
+                } else {
+                    rDate = parseDate(msg.text);
+                }
+ 
                 if (!rDate) {
-                    await bot.sendMessage(chatId, "❌ Invalid date format. Use YYYY-MM-DD.");
+                    await bot.sendMessage(chatId, "❌ Invalid date format. Use DD/MM/YYYY.");
                     return;
                 }
                 session.data.updates.rtpDate = rDate as any;
@@ -213,14 +219,31 @@ export function registerUpdateStatusFlow(router: CommandRouter) {
         if (val === 'Non-RTP') {
             session.stage = 'AWAIT_RTP_DATE';
             setSession(chatId, 'updateStatus', session);
-            await bot.sendMessage(chatId, "Please enter RTP Date (YYYY-MM-DD):", {
-                reply_markup: { inline_keyboard: [[cancelBtn]] }
+            const today = formatToDDMMYYYY(new Date());
+            await bot.sendMessage(chatId, `Please enter RTP Date (DD/MM/YYYY):\n(Type 'today' for ${today})`, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: `📅 Today (${today})`, callback_data: 'upd_stat_date_rtp_today' }],
+                        [cancelBtn]
+                    ]
+                }
             });
         } else {
             session.stage = 'CONFIRM';
             setSession(chatId, 'updateStatus', session);
             await showConfirmation(bot, chatId, session);
         }
+    });
+
+    router.registerCallback('upd_stat_date_rtp_today', async (query: TelegramBot.CallbackQuery) => {
+        const chatId = query.message!.chat.id;
+        const session = getSession(chatId, 'updateStatus') as UpdateStatusSession | undefined;
+        if (!session || session.stage !== 'AWAIT_RTP_DATE') return;
+
+        session.data.updates.rtpDate = new Date() as any;
+        session.stage = 'CONFIRM';
+        setSession(chatId, 'updateStatus', session);
+        await showConfirmation(bot, chatId, session);
     });
 
     router.registerCallback(/^upd_stat_upload_/, async (query) => {
@@ -285,7 +308,7 @@ async function showConfirmation(bot: TelegramBot, chatId: number, session: Updat
     const updates = session.data.updates;
     let updateSummary = "";
     if (updates.status) updateSummary += `🔹 RTP Status: ${updates.status}\n`;
-    if (updates.rtpDate) updateSummary += `🔹 RTP Date: ${(updates.rtpDate as unknown as Date).toLocaleDateString()}\n`;
+    if (updates.rtpDate) updateSummary += `🔹 RTP Date: ${formatToDDMMYYYY(updates.rtpDate as any)}\n`;
     if (updates.uploadStatus) updateSummary += `🔹 Upload Status: ${updates.uploadStatus}\n`;
     if (updates.locationType) updateSummary += `🔹 Location Type: ${updates.locationType}\n`;
     if (updates.currentLocation) updateSummary += `🔹 Current Location: ${updates.currentLocation}\n`;

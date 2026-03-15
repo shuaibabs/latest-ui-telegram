@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { getPrebookingDetails, cancelPrebooking } from '../prebookingService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { logActivity } from '../../activities/activityService';
 
 export async function startCancelPrebookFlow(bot: TelegramBot, chatId: number, username?: string) {
     setSession(chatId, 'cancelPrebook', { stage: 'AWAIT_MOBILE' });
@@ -86,6 +87,16 @@ export function registerCancelPrebookFlow(router: CommandRouter) {
 
             if (success) {
                 await bot.sendMessage(chatId, `✅ Pre-booking for \`${session.mobile}\` has been cancelled and moved back to inventory.`, { parse_mode: 'Markdown' });
+                
+                // Log Activity
+                await logActivity(bot, {
+                    employeeName: performedBy,
+                    action: 'CANCEL_PREBOOKING',
+                    description: `Cancelled pre-booking for number ${session.mobile} and moved it back to inventory.`,
+                    createdBy: performedBy,
+                    source: 'BOT',
+                    groupName: 'PREBOOKING'
+                }, true);
             } else {
                 await bot.sendMessage(chatId, `❌ Failed to cancel pre-booking. It may have already been removed.`);
             }

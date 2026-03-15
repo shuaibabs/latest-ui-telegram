@@ -6,6 +6,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { env } from '../../config/env';
 import { escapeMarkdown } from '../../shared/utils/telegram';
 import { logger } from '../../core/logger/logger';
+import { formatToDDMMYYYY } from '../../shared/utils/dateUtils';
 
 export const logActivity = async (
     bot: TelegramBot,
@@ -44,14 +45,20 @@ export const logActivity = async (
             `🔹 *Target:* ${escapeMarkdown(newActivity.employeeName)}\n` +
             `🔹 *Description:* ${escapeMarkdown(newActivity.description)}\n` +
             `👤 *By:* ${escapeMarkdown(newActivity.createdBy)}\n` +
-            `⏰ *Time:* ${escapeMarkdown(newActivity.timestamp.toDate().toLocaleString())}`;
+            `⏰ *Time:* ${escapeMarkdown(formatToDDMMYYYY(newActivity.timestamp))}`;
 
-        // Send to Activity Group
-        if (env.TG_GROUP_ACTIVITY) {
+        // Send to specific feature group if applicable
+        const targetGroupKey = `TG_GROUP_${newActivity.groupName}` as keyof typeof env;
+        const targetGroupId = env[targetGroupKey] as string | undefined;
+
+        if (targetGroupId) {
+            await bot.sendMessage(targetGroupId, message, { parse_mode: 'Markdown' });
+        } else if (env.TG_GROUP_ACTIVITY) {
+            // Fallback to general activity group
             await bot.sendMessage(env.TG_GROUP_ACTIVITY, message, { parse_mode: 'Markdown' });
         }
 
-        // Broadcast to Master Channel if requested
+        // Always broadcast to Master Channel if requested
         if (shouldBroadcast && env.TG_MASTER_CHANNEL) {
             await bot.sendMessage(env.TG_MASTER_CHANNEL, message, { parse_mode: 'Markdown' });
         }

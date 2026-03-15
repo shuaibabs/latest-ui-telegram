@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { getSaleDetails, cancelSale } from '../salesService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { logActivity } from '../../activities/activityService';
 
 export async function startCancelSaleFlow(bot: TelegramBot, chatId: number, username?: string) {
     setSession(chatId, 'cancelSale', { stage: 'AWAIT_MOBILE' });
@@ -86,6 +87,16 @@ export function registerCancelSaleFlow(router: CommandRouter) {
 
             if (success) {
                 await bot.sendMessage(chatId, `✅ Sale for \`${session.mobile}\` has been cancelled and moved back to inventory.`, { parse_mode: 'Markdown' });
+                
+                // Log Activity
+                await logActivity(bot, {
+                    employeeName: performedBy,
+                    action: 'CANCEL_SALE',
+                    description: `Cancelled sale for number ${session.mobile} and moved it back to inventory.`,
+                    createdBy: performedBy,
+                    source: 'BOT',
+                    groupName: 'SALES'
+                }, true);
             } else {
                 await bot.sendMessage(chatId, `❌ Failed to cancel sale. It may have already been removed.`);
             }

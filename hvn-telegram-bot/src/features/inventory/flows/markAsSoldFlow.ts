@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { validateNumbersExistence, markAsSoldBatch, getExistingVendors, addNewVendor } from '../inventoryService';
 import { logActivity } from '../../activities/activityService';
 import { CommandRouter } from '../../../core/router/commandRouter';
+import { formatToDDMMYYYY, parseFromDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const MARK_AS_SOLD_STAGES = {
     AWAIT_NUMBERS: 'AWAIT_NUMBERS',
@@ -107,8 +108,8 @@ export function registerMarkAsSoldFlow(router: CommandRouter) {
                 session.stage = 'AWAIT_SALE_DATE';
                 setSession(chatId, 'markAsSold', session);
 
-                const today = new Date().toISOString().split('T')[0];
-                await bot.sendMessage(chatId, `*Step 4:* Enter Sale Date (YYYY-MM-DD):\n(Leave blank or type 'today' for ${today})`, {
+                const today = formatToDDMMYYYY(new Date());
+                await bot.sendMessage(chatId, `*Step 4:* Enter Sale Date (DD/MM/YYYY):\n(Leave blank or type 'today' for ${today})`, {
                     parse_mode: 'Markdown',
                     reply_markup: {
                         inline_keyboard: [
@@ -124,9 +125,9 @@ export function registerMarkAsSoldFlow(router: CommandRouter) {
                 let dateStr = msg.text.trim().toLowerCase();
                 let date = new Date();
                 if (dateStr !== 'today' && dateStr !== '') {
-                    date = new Date(dateStr);
-                    if (isNaN(date.getTime())) {
-                        await bot.sendMessage(chatId, "❌ Invalid date format. Use YYYY-MM-DD.");
+                    date = parseFromDDMMYYYY(dateStr) || new Date();
+                    if (dateStr !== 'today' && dateStr !== '' && !parseFromDDMMYYYY(dateStr)) {
+                        await bot.sendMessage(chatId, "❌ Invalid date format. Use DD/MM/YYYY.");
                         return;
                     }
                 }
@@ -154,8 +155,8 @@ export function registerMarkAsSoldFlow(router: CommandRouter) {
         session.stage = 'AWAIT_SALE_DATE';
         setSession(chatId, 'markAsSold', session);
 
-        const today = new Date().toISOString().split('T')[0];
-        await bot.sendMessage(chatId, `*Step 4:* Enter Sale Date (YYYY-MM-DD):\n(Leave blank or type 'today' for ${today})`, {
+        const today = formatToDDMMYYYY(new Date());
+        await bot.sendMessage(chatId, `*Step 4:* Enter Sale Date (DD/MM/YYYY):\n(Leave blank or type 'today' for ${today})`, {
             parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
@@ -223,7 +224,7 @@ async function showSoldConfirmation(bot: TelegramBot, chatId: number, session: M
         `📱 *Numbers:* ${session.data.numbers.join(', ')}\n` +
         `💰 *Sale Price:* ₹${session.data.salePrice}\n` +
         `👤 *Sold To:* ${session.data.soldTo}\n` +
-        `📅 *Sale Date:* ${session.data.saleDate.toLocaleDateString()}\n\n` +
+        `📅 *Sale Date:* ${formatToDDMMYYYY(session.data.saleDate)}\n\n` +
         `*Move these numbers to Sales collection?*`;
 
     await bot.sendMessage(chatId, summary, {

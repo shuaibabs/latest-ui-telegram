@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { searchCOCPNumbers } from '../cocpService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const SEARCH_STAGES = {
     SELECT_TYPE: 'SELECT_TYPE',
@@ -182,7 +183,7 @@ async function performSearch(bot: TelegramBot, chatId: number, criteria: any, us
             const displayResults = results.slice(0, 15);
             displayResults.forEach((num, i) => {
                 text += `${i + 1}. \`${num.mobile}\` | ${num.status}\n`;
-                if (num.safeCustodyDate) text += `   └ Safe Custody: ${num.safeCustodyDate.toDate().toLocaleDateString()}\n`;
+                if (num.safeCustodyDate) text += `   └ Safe Custody: ${formatToDDMMYYYY(num.safeCustodyDate)}\n`;
             });
 
             if (count > 15) {

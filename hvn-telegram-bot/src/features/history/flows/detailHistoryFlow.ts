@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { getGlobalNumberHistory } from '../historyService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startDetailHistoryFlow(bot: TelegramBot, chatId: number, username?: string) {
     setSession(chatId, 'historyDetail', { stage: 'AWAIT_MOBILE' });
@@ -59,7 +60,7 @@ export function registerDetailHistoryFlow(router: CommandRouter) {
                 } else {
                     history.forEach((event: any, i: number) => {
                         text += `*${i + 1}. ${event.action}*\n`;
-                        text += `📅 ${event.timestamp.toDate().toLocaleString()}\n`;
+                        text += `📅 ${formatToDDMMYYYY(event.timestamp)}\n`;
                         text += `👤 By: ${event.performedBy}\n`;
                         text += `📝 ${event.description}\n\n`;
                     });

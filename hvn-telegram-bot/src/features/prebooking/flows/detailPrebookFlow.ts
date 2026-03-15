@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { getPrebookingDetails } from '../prebookingService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startDetailPrebookFlow(bot: TelegramBot, chatId: number) {
     setSession(chatId, 'prebookDetail', { stage: 'AWAIT_MOBILE' });
@@ -49,7 +50,7 @@ export function registerDetailPrebookFlow(router: CommandRouter) {
             } else {
                 let text = `ℹ️ *Pre-booking Details: ${mobile}*\n`;
                 text += `━━━━━━━━━━━━━━━━━━━━\n`;
-                text += `📅 *Pre-booking Date:* ${pb.preBookingDate.toDate().toLocaleString()}\n`;
+                text += `📅 *Pre-booking Date:* ${formatToDDMMYYYY(pb.preBookingDate)}\n`;
                 text += `🔢 *Digital Root (Sum):* ${pb.sum}\n`;
                 text += `📡 *Type:* ${pb.originalNumberData.numberType}\n`;
                 text += `🛡️ *Ownership:* ${pb.originalNumberData.ownershipType}\n`;

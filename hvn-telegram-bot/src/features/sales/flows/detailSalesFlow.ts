@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { getSaleDetails } from '../salesService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startDetailSalesFlow(bot: TelegramBot, chatId: number) {
     setSession(chatId, 'saleDetail', { stage: 'AWAIT_MOBILE' });
@@ -51,7 +52,7 @@ export function registerDetailSalesFlow(router: CommandRouter) {
                 text += `━━━━━━━━━━━━━━━━━━━━\n`;
                 text += `💰 *Sale Price:* ₹${sale.salePrice}\n`;
                 text += `👤 *Sold To:* ${sale.soldTo}\n`;
-                text += `📅 *Sale Date:* ${sale.saleDate.toDate().toLocaleString()}\n`;
+                text += `📅 *Sale Date:* ${formatToDDMMYYYY(sale.saleDate)}\n`;
                 text += `🔢 *Digital Root (Sum):* ${sale.sum}\n`;
                 text += `📡 *Type:* ${sale.originalNumberData.numberType}\n`;
                 text += `🛡️ *Ownership:* ${sale.originalNumberData.ownershipType}\n`;

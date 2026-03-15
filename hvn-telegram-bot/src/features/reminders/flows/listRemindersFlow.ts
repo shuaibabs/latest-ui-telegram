@@ -5,6 +5,7 @@ import { getPendingReminders, markReminderAsDone } from '../remindersService';
 import { isAdmin, getUserProfile } from '../../../core/auth/permissions';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { logActivity } from '../../activities/activityService';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const PAGE_SIZE = 5;
 
@@ -40,7 +41,7 @@ async function showRemindersPage(bot: TelegramBot, chatId: number, page: number,
         const inline_keyboard: TelegramBot.InlineKeyboardButton[][] = [];
 
         reminders.forEach((r: any, i: number) => {
-            const date = r.dueDate instanceof Date ? r.dueDate.toLocaleDateString() : (r.dueDate as any)?.toDate ? (r.dueDate as any).toDate().toLocaleDateString() : 'N/A';
+            const date = formatToDDMMYYYY(r.dueDate);
             text += `${offset + i + 1}. *${r.taskName}*\n`;
             text += `   📅 Due: ${date} | 👤: ${r.assignedTo.join(', ')}\n\n`;
             

@@ -6,6 +6,7 @@ import { addReminder } from '../remindersService';
 import { getAllUsers } from '../../users/userService';
 import { logActivity } from '../../activities/activityService';
 import { CommandRouter } from '../../../core/router/commandRouter';
+import { formatToDDMMYYYY, parseFromDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const ADD_REMINDER_STAGES = {
     AWAIT_NAME: 'AWAIT_NAME',
@@ -33,10 +34,7 @@ export async function startAddReminderFlow(bot: TelegramBot, chatId: number, use
     });
 }
 
-const parseDate = (text: string): Date | null => {
-    const d = new Date(text);
-    return isNaN(d.getTime()) ? null : d;
-};
+const parseDate = parseFromDDMMYYYY;
 
 export function registerAddReminderFlow(router: CommandRouter) {
     const bot = router.bot;
@@ -50,16 +48,30 @@ export function registerAddReminderFlow(router: CommandRouter) {
                 session.data.taskName = msg.text.trim();
                 session.stage = 'AWAIT_DATE';
                 setSession(msg.chat.id, 'addReminder', session);
-                await bot.sendMessage(msg.chat.id, "*Step 2:* Enter Due Date (YYYY-MM-DD):", {
+                const today = formatToDDMMYYYY(new Date());
+                await bot.sendMessage(msg.chat.id, `*Step 2:* Enter Due Date (DD/MM/YYYY):\n(Type 'today' for ${today})`, {
                     parse_mode: 'Markdown',
-                    reply_markup: { inline_keyboard: [[cancelBtn]] }
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: `📅 Today (${today})`, callback_data: 'add_rem_date_today' }],
+                            [cancelBtn]
+                        ]
+                    }
                 });
                 break;
 
             case 'AWAIT_DATE':
-                const date = parseDate(msg.text);
+                let dateStr = msg.text.trim().toLowerCase();
+                let date: Date | null;
+                
+                if (dateStr === 'today') {
+                    date = new Date();
+                } else {
+                    date = parseDate(msg.text);
+                }
+
                 if (!date) {
-                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Please use YYYY-MM-DD.");
+                    await bot.sendMessage(msg.chat.id, "❌ Invalid date format. Please use DD/MM/YYYY.");
                     return;
                 }
                 session.data.dueDate = date as any;
@@ -78,6 +90,25 @@ export function registerAddReminderFlow(router: CommandRouter) {
         }
     });
 
+    router.registerCallback('add_rem_date_today', async (query: TelegramBot.CallbackQuery) => {
+        const chatId = query.message!.chat.id;
+        const session = getSession(chatId, 'addReminder') as AddReminderSession | undefined;
+        if (!session || session.stage !== 'AWAIT_DATE') return;
+
+        session.data.dueDate = new Date() as any;
+        session.stage = 'AWAIT_ASSIGNMENT';
+        setSession(chatId, 'addReminder', session);
+
+        const users = await getAllUsers();
+        const userButtons = users.map(u => [{ text: u.displayName, callback_data: `add_rem_assign_${u.displayName}` }]);
+        userButtons.push([cancelBtn]);
+
+        await bot.sendMessage(chatId, "*Step 3:* Assign this task to:", {
+            parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard: userButtons }
+        });
+    });
+
     router.registerCallback(/^add_rem_assign_/, async (query: TelegramBot.CallbackQuery) => {
         const chatId = query.message!.chat.id;
         const session = getSession(chatId, 'addReminder') as AddReminderSession | undefined;
@@ -90,7 +121,7 @@ export function registerAddReminderFlow(router: CommandRouter) {
 
         const summary = `*Confirm New Reminder*\n\n` +
             `📝 *Task:* ${session.data.taskName}\n` +
-            `📅 *Due Date:* ${(session.data.dueDate as unknown as Date).toLocaleDateString()}\n` +
+            `📅 *Due Date:* ${formatToDDMMYYYY(session.data.dueDate as any)}\n` +
             `👤 *Assigned To:* ${session.data.assignedTo?.join(', ')}\n\n` +
             `Save this reminder?`;
 

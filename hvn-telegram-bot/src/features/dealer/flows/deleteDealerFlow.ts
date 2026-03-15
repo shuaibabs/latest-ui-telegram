@@ -4,6 +4,7 @@ import { getDealerPurchases, deleteDealerPurchase } from '../dealerService';
 import { isAdmin, getUserProfile } from '../../../core/auth/permissions';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { logger } from '../../../core/logger/logger';
+import { logActivity } from '../../activities/activityService';
 
 export async function startDeleteDealerFlow(bot: TelegramBot, chatId: number, username?: string) {
     try {
@@ -40,6 +41,19 @@ export function registerDeleteDealerFlow(router: CommandRouter) {
         try {
             await deleteDealerPurchase(id);
             await bot.sendMessage(chatId, `✅ Record for \`${mobile}\` has been deleted.`, { parse_mode: 'Markdown' });
+            
+            const profile = await getUserProfile(query.from.username);
+            const performedBy = profile?.displayName || query.from.username || 'Unknown';
+
+            // Log Activity
+            await logActivity(bot, {
+                employeeName: performedBy,
+                action: 'DELETE_DEALER_PURCHASE',
+                description: `Deleted dealer purchase record for number ${mobile}`,
+                createdBy: performedBy,
+                source: 'BOT',
+                groupName: 'DEALER_PURCHASES'
+            }, true);
         } catch (error: any) {
             await bot.sendMessage(chatId, `❌ Failed to delete record: ${error.message}`);
         }

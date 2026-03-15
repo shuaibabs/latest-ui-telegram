@@ -3,6 +3,7 @@ import { CommandRouter } from '../../../core/router/commandRouter';
 import { getCOCPNumbers } from '../cocpService';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
 import { logger } from '../../../core/logger/logger';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startListCOCPFlow(bot: TelegramBot, chatId: number, username?: string) {
     try {
@@ -28,7 +29,7 @@ export async function startListCOCPFlow(bot: TelegramBot, chatId: number, userna
         const list = results.slice(0, 20);
         list.forEach((num, i) => {
             text += `${i + 1}. \`${num.mobile}\` | ${num.status}\n`;
-            if (num.safeCustodyDate) text += `   └ Safe Custody: ${num.safeCustodyDate.toDate().toLocaleDateString()}\n`;
+            if (num.safeCustodyDate) text += `   └ Safe Custody: ${formatToDDMMYYYY(num.safeCustodyDate)}\n`;
             if (num.accountName) text += `   └ Account: ${num.accountName}\n`;
         });
 

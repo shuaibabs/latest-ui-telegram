@@ -3,6 +3,7 @@ import { getSession, setSession, clearSession } from '../../../core/bot/sessionM
 import { logger } from '../../../core/logger/logger';
 import { getNumberDetails } from '../inventoryService';
 import { CommandRouter } from '../../../core/router/commandRouter';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 const DETAIL_STAGES = {
     AWAIT_NUMBER: 'AWAIT_NUMBER',
@@ -74,7 +75,7 @@ export function registerDetailNumberFlow(router: CommandRouter) {
                     response += `💰 *Sale Info*\n`;
                     response += `├ Sold To: *${data.soldTo}*\n`;
                     response += `├ Sale Price: ₹${data.salePrice}\n`;
-                    response += `└ Date: ${data.saleDate?.toDate()?.toLocaleDateString()}\n\n`;
+                    response += `└ Date: ${formatToDDMMYYYY(data.saleDate)}\n\n`;
 
                     response += `📋 *Original Details*\n`;
                     response += `├ Type: ${orig.numberType}\n`;
@@ -82,12 +83,12 @@ export function registerDetailNumberFlow(router: CommandRouter) {
 
                 } else if (location === 'Prebooked') {
                     response += `📅 *Booking Info*\n`;
-                    response += `├ Date: ${data.preBookingDate?.toDate()?.toLocaleDateString()}\n`;
+                    response += `├ Date: ${formatToDDMMYYYY(data.preBookingDate)}\n`;
                     response += `└ Status: ${data.uploadStatus}\n\n`;
 
                 } else if (location === 'Deleted') {
                     response += `🗑 *Deletion Info*\n`;
-                    response += `├ Date: ${data.deletedAt?.toDate()?.toLocaleDateString()}\n`;
+                    response += `├ Date: ${formatToDDMMYYYY(data.deletedAt)}\n`;
                     response += `├ By: ${data.deletedBy}\n`;
                     response += `└ Reason: ${data.deletionReason}\n\n`;
                 }

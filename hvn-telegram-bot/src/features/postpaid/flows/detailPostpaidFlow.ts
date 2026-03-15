@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { getPostpaidDetails } from '../postpaidService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startDetailPostpaidFlow(bot: TelegramBot, chatId: number, username?: string) {
     const isUserAdmin = await isAdmin(username);
@@ -56,14 +57,14 @@ export function registerDetailPostpaidFlow(router: CommandRouter) {
             } else {
                 let text = `📱 *Postpaid Details: ${mobile}*\n`;
                 text += `━━━━━━━━━━━━━━━━━━━━\n`;
-                text += `📅 *Bill Date:* ${num.billDate ? num.billDate.toDate().toLocaleDateString() : 'N/A'}\n`;
+                text += `📅 *Bill Date:* ${formatToDDMMYYYY(num.billDate)}\n`;
                 text += `✅ *PD Bill:* ${num.pdBill || 'N/A'}\n`;
                 text += `💰 *Purchase Price:* ₹${num.purchasePrice}\n`;
                 text += `📍 *Current Location:* ${num.currentLocation}\n`;
                 text += `📡 *Type:* ${num.numberType}\n`;
                 text += `🛡️ *Ownership:* ${num.ownershipType}\n`;
                 text += `👤 *Assigned To:* ${num.assignedTo}\n`;
-                text += `📅 *Purchase Date:* ${num.purchaseDate.toDate().toLocaleDateString()}\n`;
+                text += `📅 *Purchase Date:* ${formatToDDMMYYYY(num.purchaseDate)}\n`;
                 text += `━━━━━━━━━━━━━━━━━━━━`;
 
                 await bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });

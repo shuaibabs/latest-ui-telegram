@@ -4,6 +4,7 @@ import { getDeletedNumbers, restoreNumber } from '../deletedService';
 import { isAdmin, getUserProfile } from '../../../core/auth/permissions';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { logger } from '../../../core/logger/logger';
+import { logActivity } from '../../activities/activityService';
 
 export async function startRestoreDeletedFlow(bot: TelegramBot, chatId: number, username?: string) {
     const isUserAdmin = await isAdmin(username);
@@ -87,6 +88,16 @@ export function registerRestoreDeletedFlow(router: CommandRouter) {
             const result = await restoreNumber(session.recordId, performer);
             if (result) {
                 await bot.sendMessage(chatId, `✅ *Success!*\n\nNumber \`${session.mobile}\` has been restored to inventory.`, { parse_mode: 'Markdown' });
+                
+                // Log Activity
+                await logActivity(bot, {
+                    employeeName: performer,
+                    action: 'RESTORE_NUMBER',
+                    description: `Restored number ${session.mobile} to inventory.`,
+                    createdBy: performer,
+                    source: 'BOT',
+                    groupName: 'DELETED_NUMBERS'
+                }, true);
             } else {
                 await bot.sendMessage(chatId, "❌ Restoration failed. Record might have already been restored.");
             }

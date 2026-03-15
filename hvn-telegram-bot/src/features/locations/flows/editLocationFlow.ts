@@ -4,6 +4,7 @@ import { checkInNumber, updateLocation } from '../locationsService';
 import { isAdmin, getUserProfile } from '../../../core/auth/permissions';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { logger } from '../../../core/logger/logger';
+import { logActivity } from '../../activities/activityService';
 
 export async function startEditLocationFlow(bot: TelegramBot, chatId: number, username?: string) {
     const isUserAdmin = await isAdmin(username);
@@ -86,6 +87,16 @@ export function registerEditLocationFlow(router: CommandRouter) {
                 const result = await checkInNumber(session.mobile, performer, employeeName);
                 if (result) {
                     await bot.sendMessage(chatId, `✅ *Success!*\n\nSIM number \`${session.mobile}\` has been checked in successfully.`, { parse_mode: 'Markdown' });
+                    
+                    // Log Activity
+                    await logActivity(bot, {
+                        employeeName: performer,
+                        action: 'SIM_CHECKIN',
+                        description: `Checked in SIM number ${session.mobile}`,
+                        createdBy: performer,
+                        source: 'BOT',
+                        groupName: 'SIM_LOCATIONS'
+                    }, true);
                 } else {
                     await bot.sendMessage(chatId, `❌ Number \`${session.mobile}\` not found or not assigned to you.`, { parse_mode: 'Markdown' });
                 }
@@ -115,6 +126,16 @@ export function registerEditLocationFlow(router: CommandRouter) {
             const result = await updateLocation(session.mobile, { locationType: type!, currentLocation: session.newLoc }, performer, employeeName);
             if (result) {
                 await bot.sendMessage(chatId, `✅ *Location Updated!*\n\nSIM \`${session.mobile}\` is now at *${session.newLoc}* (${type}).`, { parse_mode: 'Markdown' });
+                
+                // Log Activity
+                await logActivity(bot, {
+                    employeeName: performer,
+                    action: 'UPDATE_SIM_LOCATION',
+                    description: `Updated location for SIM ${session.mobile} to ${session.newLoc} (${type})`,
+                    createdBy: performer,
+                    source: 'BOT',
+                    groupName: 'SIM_LOCATIONS'
+                }, true);
             } else {
                 await bot.sendMessage(chatId, `❌ Number \`${session.mobile}\` not found or not assigned to you.`, { parse_mode: 'Markdown' });
             }

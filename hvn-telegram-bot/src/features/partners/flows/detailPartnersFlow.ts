@@ -4,6 +4,7 @@ import { logger } from '../../../core/logger/logger';
 import { getPartnershipDetails } from '../partnersService';
 import { CommandRouter } from '../../../core/router/commandRouter';
 import { getUserProfile, isAdmin } from '../../../core/auth/permissions';
+import { formatToDDMMYYYY } from '../../../shared/utils/dateUtils';
 
 export async function startDetailPartnersFlow(bot: TelegramBot, chatId: number, username?: string) {
     const isUserAdmin = await isAdmin(username);
@@ -62,7 +63,7 @@ export function registerDetailPartnersFlow(router: CommandRouter) {
                 text += `📡 *Type:* ${num.numberType}\n`;
                 text += `🛡️ *Ownership:* ${num.ownershipType}\n`;
                 text += `👤 *Assigned To:* ${num.assignedTo}\n`;
-                text += `📅 *Purchase Date:* ${num.purchaseDate.toDate().toLocaleDateString()}\n`;
+                text += `📅 *Purchase Date:* ${formatToDDMMYYYY(num.purchaseDate)}\n`;
                 text += `━━━━━━━━━━━━━━━━━━━━`;
 
                 await bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
