@@ -13,7 +13,6 @@ import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 import { NewNumberData } from '@/lib/data';
 import { useNavigation } from '@/context/navigation-context';
-import { usePathname } from 'next/navigation';
 
 type AddNumbersReviewModalProps = {
   isOpen: boolean;
@@ -31,7 +30,6 @@ type ReviewResult = {
 export function AddNumbersReviewModal({ isOpen, onClose, formData }: AddNumbersReviewModalProps) {
   const { addMultipleNumbers, isMobileNumberDuplicate } = useApp();
   const { navigate } = useNavigation();
-  const pathname = usePathname();
 
   const [reviewResult, setReviewResult] = useState<ReviewResult>({ valid: [], invalid: [], duplicates: [], inputDuplicates: []});
   const [isSaving, setIsSaving] = useState(false);
@@ -75,7 +73,7 @@ export function AddNumbersReviewModal({ isOpen, onClose, formData }: AddNumbersR
     
     setIsSaving(false);
     handleClose();
-    navigate('/numbers', pathname);
+    navigate('/numbers');
   };
   
   const handleClose = () => {
